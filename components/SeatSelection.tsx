@@ -1,8 +1,9 @@
 
 import React, { useState, useMemo } from 'react';
 import { Tier, Seat, Zone } from '../types';
-import { MOCK_SEATS, ZONES } from '../constants';
-import { Star, ChevronRight, Info, MapPin, LayoutGrid, Users, ArrowLeft } from 'lucide-react';
+import { Star, ChevronRight, Info, MapPin, LayoutGrid, Users, ArrowLeft, Loader2 } from 'lucide-react';
+import { useSeats } from '../lib/hooks';
+import { seatService } from '../lib/services';
 
 interface Props {
   tier: Tier;
@@ -15,15 +16,26 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack }) =>
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [zones, setZones] = useState<Zone[]>([]);
+  
+  const { seats: allSeats, loading, error: seatsError, refreshSeats } = useSeats(tier.id);
+
+  React.useEffect(() => {
+    const loadZones = async () => {
+      const fetchedZones = await seatService.getZonesByTier(tier.id);
+      setZones(fetchedZones);
+    };
+    loadZones();
+  }, [tier.id]);
 
   const availableZones = useMemo(() => {
-    return ZONES.filter(z => z.tierId === tier.id);
-  }, [tier]);
+    return zones;
+  }, [zones]);
 
   const zoneSeats = useMemo(() => {
     if (!selectedZone) return [];
-    return MOCK_SEATS.filter(s => s.zoneId === selectedZone.id);
-  }, [selectedZone]);
+    return allSeats.filter(s => s.zone_id === selectedZone.id);
+  }, [selectedZone, allSeats]);
 
   const rows = useMemo(() => {
     const r: Record<string, Seat[]> = {};
@@ -38,7 +50,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack }) =>
   }, [zoneSeats]);
 
   const handleSeatClick = (seat: Seat) => {
-    if (seat.isBooked) return;
+    if (seat.is_booked) return;
     setError(null);
     
     if (selectedSeatIds.includes(seat.id)) {
@@ -161,7 +173,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack }) =>
 
           <div className="grid grid-cols-1 gap-4 pb-8">
             {availableZones.map(zone => {
-              const bookedInZone = MOCK_SEATS.filter(s => s.zoneId === zone.id && s.isBooked).length;
+              const bookedInZone = allSeats.filter(s => s.zone_id === zone.id && s.is_booked).length;
               const remaining = zone.capacity - bookedInZone;
 
               return (

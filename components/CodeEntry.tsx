@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import { Tier, BookingState } from '../types';
-import { getTierFromCode, TIERS, MOCK_SEATS } from '../constants';
 import { Ticket, AlertCircle, Plus, X, Search, Phone, Loader2 } from 'lucide-react';
 import Confirmation from './Confirmation';
+import { useCodeValidation } from '../lib/hooks';
+import { bookingService } from '../lib/services';
 
 interface Props {
   onSubmit: (codes: string[], tier: Tier) => void;
@@ -17,6 +18,8 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
   const [isRetrieving, setIsRetrieving] = useState(false);
   const [retrievalError, setRetrievalError] = useState<string | null>(null);
   const [viewingTicket, setViewingTicket] = useState<BookingState | null>(null);
+  
+  const { validateCodes, loading: validating } = useCodeValidation();
 
   const handleAddCode = () => {
     if (codes.length < 5) {
@@ -37,18 +40,18 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
     setCodes(newCodes);
   };
 
-  const validate = () => {
+  const validate = async () => {
     setError(null);
     const nonEmptyCodes = codes.filter(c => c !== '');
     const validCodes = codes.filter(c => c.length === 8);
     
     if (nonEmptyCodes.length === 0) {
-      setError('กรุณากรอกรหัส 8 หลักอย่างน้อย 1 รหัส');
+      setError('กรุณากรอกรหัสอย่างน้อย 1 รหัส');
       return;
     }
 
     if (validCodes.length !== nonEmptyCodes.length) {
-      setError('รหัสต้องมีความยาวครบ 8 หลัก');
+      setError('รหัสต้องมี 8 หลัก (เช่น PT4K7M2N)');
       return;
     }
 
@@ -58,28 +61,19 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
       return;
     }
 
-    const firstTier = getTierFromCode(validCodes[0]);
-    if (!firstTier) {
-      setError(`รหัส ${validCodes[0]} ไม่ถูกต้องหรือไม่พบข้อมูลโซน`);
+    const result = await validateCodes(validCodes);
+    
+    if (!result.isValid) {
+      setError(result.error || 'รหัสไม่ถูกต้อง');
       return;
     }
 
-    for (let i = 1; i < validCodes.length; i++) {
-      const tier = getTierFromCode(validCodes[i]);
-      if (!tier) {
-        setError(`รหัส ${validCodes[i]} ไม่ถูกต้อง`);
-        return;
-      }
-      if (tier.id !== firstTier.id) {
-        setError('รหัสต้องอยู่ใน Tier เดียวกันเพื่อจองพร้อมกัน');
-        return;
-      }
+    if (result.tier) {
+      onSubmit(validCodes, result.tier);
     }
-
-    onSubmit(validCodes, firstTier);
   };
 
-  const handleRetrievalSubmit = () => {
+  const handleRetrievalSubmit = async () => {
     setRetrievalError(null);
     if (retrievalPhone.length !== 10) {
       setRetrievalError('กรุณากรอกเบอร์โทรศัพท์ 10 หลัก');
@@ -87,19 +81,23 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
     }
 
     setIsRetrieving(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      const booking = await bookingService.getBooking(retrievalPhone);
+      
+      if (!booking) {
+        setRetrievalError('ไม่พบข้อมูลการจองด้วยเบอร์นี้');
+        setIsRetrieving(false);
+        return;
+      }
+
+      setViewingTicket(null);
+      setRetrievalError('Feature coming soon - Booking retrieval');
       setIsRetrieving(false);
-      // Mock ticket data
-      const mockFoundState: BookingState = {
-        codes: ['RETRIEVED'],
-        selectedTier: TIERS[0],
-        selectedSeats: [MOCK_SEATS[0]],
-        attendees: [{ firstName: 'JOHN', lastName: 'DOE', seatId: MOCK_SEATS[0].id }],
-        contact: { email: 'john@example.com', phone: retrievalPhone }
-      };
-      setViewingTicket(mockFoundState);
-    }, 1500);
+    } catch (error) {
+      setRetrievalError('เกิดข้อผิดพลาดในการค้นหา');
+      setIsRetrieving(false);
+    }
   };
 
   const closeRetrievalModal = () => {
@@ -116,7 +114,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
           <Ticket className="w-8 h-8 text-[#E4002B]" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900 mb-1">ระบุรหัสบัตร</h2>
-        <p className="text-slate-500 text-sm">กรุณาระบุรหัส 8 หลักของคุณ (สูงสุด 5 รหัส)</p>
+        <p className="text-slate-500 text-sm">กรุณาระบุรหัส 8 หลัก (เช่น PT4K7M2N) สูงสุด 5 รหัส</p>
       </div>
 
       <div className="space-y-3">
@@ -127,7 +125,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
               value={code}
               onChange={(e) => handleCodeChange(index, e.target.value)}
               placeholder="XXXXXXXX"
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-4 text-center text-xl font-mono tracking-widest focus:border-[#E4002B] focus:ring-1 focus:ring-[#E4002B] outline-none transition uppercase text-slate-800"
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-4 text-center text-lg font-mono tracking-wide focus:border-[#E4002B] focus:ring-1 focus:ring-[#E4002B] outline-none transition uppercase text-slate-800"
             />
             {codes.length > 1 && (
               <button 
@@ -161,9 +159,17 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
       <div className="space-y-3 pt-2">
         <button
           onClick={validate}
-          className="w-full py-4 bg-[#E4002B] text-white rounded-xl font-bold text-lg shadow-lg shadow-red-500/20 hover:bg-red-700 active:scale-[0.98] transition"
+          disabled={validating}
+          className="w-full py-4 bg-[#E4002B] text-white rounded-xl font-bold text-lg shadow-lg shadow-red-500/20 hover:bg-red-700 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          ตรวจสอบข้อมูล
+          {validating ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>กำลังตรวจสอบ...</span>
+            </>
+          ) : (
+            'ตรวจสอบข้อมูล'
+          )}
         </button>
 
         <button

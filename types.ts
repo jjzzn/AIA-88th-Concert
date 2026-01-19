@@ -21,9 +21,12 @@ export interface Seat {
   id: string;
   row: string;
   number: number;
-  tierId: string;
-  zoneId: string;
-  isBooked: boolean;
+  tierId?: string;
+  tier_id?: string;
+  zoneId?: string;
+  zone_id?: string;
+  isBooked?: boolean;
+  is_booked?: boolean;
 }
 
 export interface Attendee {

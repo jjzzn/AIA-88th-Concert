@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookingState } from '../types';
+import { BookingState, Seat } from '../types';
 import { CheckCircle2, Download, Share2, Calendar, MapPin, Star } from 'lucide-react';
 
 interface Props {
@@ -49,11 +49,10 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
       <div className={`relative ${isSingleTicket ? 'px-2' : '-mx-4'}`}>
         <div className={`flex ${isSingleTicket ? 'justify-center' : 'overflow-x-auto snap-x snap-mandatory no-scrollbar px-4 gap-4 pb-4'}`}>
           {state.attendees.map((attendee, index) => {
-            // Extract row and number from seatId (Format: TIER-RowNumber)
-            const seatParts = attendee.seatId.split('-');
-            const seatInfo = seatParts[seatParts.length - 1]; // e.g., "A1"
-            const row = seatInfo.charAt(0);
-            const num = seatInfo.substring(1).padStart(2, '0');
+            // Find the corresponding seat from selectedSeats
+            const seat = state.selectedSeats.find(s => s.id === attendee.seatId);
+            const row = seat?.row || 'A';
+            const num = seat?.number?.toString().padStart(2, '0') || '01';
 
             return (
               <div 

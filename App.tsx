@@ -6,6 +6,7 @@ import SeatSelection from './components/SeatSelection';
 import DetailsForm from './components/DetailsForm';
 import Confirmation from './components/Confirmation';
 import { ChevronLeft } from 'lucide-react';
+import { useBooking } from './lib/hooks';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<BookingStep>('CODE_ENTRY');
@@ -16,6 +17,8 @@ const App: React.FC = () => {
     attendees: [],
     contact: { email: '', phone: '' },
   });
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const { createBooking, loading: bookingLoading } = useBooking();
 
   const handleCodesSubmit = (codes: string[], tier: Tier) => {
     setState(prev => ({ ...prev, codes, selectedTier: tier }));
@@ -31,9 +34,29 @@ const App: React.FC = () => {
     setStep('DETAILS');
   };
 
-  const handleDetailsSubmit = (attendees: Attendee[], contact: ContactInfo) => {
+  const handleDetailsSubmit = async (attendees: Attendee[], contact: ContactInfo) => {
     setState(prev => ({ ...prev, attendees, contact }));
-    setStep('CONFIRMATION');
+    
+    if (!state.selectedTier) return;
+    
+    const result = await createBooking({
+      email: contact.email,
+      phone: contact.phone,
+      codes: state.codes,
+      seats: attendees.map(a => ({
+        seatId: a.seatId,
+        firstName: a.firstName,
+        lastName: a.lastName,
+      })),
+      totalAmount: state.selectedTier.price * attendees.length,
+    });
+
+    if (result.success && result.bookingId) {
+      setBookingId(result.bookingId);
+      setStep('CONFIRMATION');
+    } else {
+      alert('เกิดข้อผิดพลาดในการจอง: ' + (result.error || 'Unknown error'));
+    }
   };
 
   const resetBooking = () => {
@@ -44,6 +67,7 @@ const App: React.FC = () => {
       attendees: [],
       contact: { email: '', phone: '' },
     });
+    setBookingId(null);
     setStep('CODE_ENTRY');
   };
 
