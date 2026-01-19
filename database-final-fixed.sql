@@ -109,13 +109,13 @@ CREATE INDEX idx_tiers_code_prefix ON tiers(code_prefix);
 -- INSERT DATA - 8 TIERS
 -- ============================================================================
 
--- Insert 8 Tiers (Based on your specification)
+-- Insert 8 Tiers (Code Prefix matches Name)
 INSERT INTO tiers (id, code_prefix, name, level, price, color, description) VALUES
     ('11111111-1111-1111-1111-111111111111', 'PT', 'PLATINUM', 'ELITE PLUS', 8500.00, '#E5E4E2', 'Platinum Elite - Front row with exclusive VIP lounge access'),
     ('22222222-2222-2222-2222-222222222222', 'GD', 'GOLD', 'PREMIUM PLUS', 6500.00, '#FFD700', 'Gold Premium - Premium seating with excellent stage view'),
     ('33333333-3333-3333-3333-333333333333', 'PR', 'PRESTIGE', 'PRESTIGE', 5800.00, '#B87333', 'Prestige Section - Distinguished seating with premium amenities'),
-    ('44444444-4444-4444-4444-444444444444', 'VP', 'VIP', 'VIP', 5000.00, '#C0C0C0', 'VIP Section - Special access with great acoustics'),
-    ('55555555-5555-5555-5555-555555555555', 'SV', 'SILVER', 'PREMIUM', 4200.00, '#C9C0BB', 'Silver Premium - Comfortable seating with good view'),
+    ('44444444-4444-4444-4444-444444444444', 'VP', 'VIP', 'VIP', 5000.00, '#8B00FF', 'VIP Section - Special access with great acoustics'),
+    ('55555555-5555-5555-5555-555555555555', 'SV', 'SILVER', 'PREMIUM', 4200.00, '#C0C0C0', 'Silver Premium - Comfortable seating with good view'),
     ('66666666-6666-6666-6666-666666666666', 'AG', 'AGENCY', 'STANDARD PLUS', 3500.00, '#708090', 'Agency Section - Quality seating for groups'),
     ('77777777-7777-7777-7777-777777777777', 'CL', 'CLASSIC', 'STANDARD', 2500.00, '#8B7355', 'Classic Section - Traditional concert experience'),
     ('88888888-8888-8888-8888-888888888888', 'OT', 'OTHER', 'BASIC', 1800.00, '#A9A9A9', 'Other Section - Budget-friendly option');
