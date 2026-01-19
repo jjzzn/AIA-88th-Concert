@@ -2,6 +2,7 @@
 import React from 'react';
 import { BookingState, Seat } from '../types';
 import { CheckCircle2, Download, Share2, Calendar, MapPin, Star } from 'lucide-react';
+import QRCode from './QRCode';
 
 interface Props {
   state: BookingState;
@@ -53,6 +54,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
             const seat = state.selectedSeats.find(s => s.id === attendee.seatId);
             const row = seat?.row || 'A';
             const num = seat?.number?.toString().padStart(2, '0') || '01';
+            const qrToken = (attendee as any).qrToken || (seat as any)?.qr_token || crypto.randomUUID();
 
             return (
               <div 
@@ -98,14 +100,18 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
                     {/* QR Code Area - Clean & Centered */}
                     <div className="flex justify-center py-2">
                       <div className="p-6 bg-[#F8FAFC] rounded-[40px] border border-slate-100 shadow-[inset_0_2px_8px_rgba(0,0,0,0.03)]">
-                        <div className="w-32 h-32 grid grid-cols-5 grid-rows-5 gap-2 sm:w-40 sm:h-40">
-                          {Array.from({ length: 25 }).map((_, i) => (
-                            <div 
-                              key={i} 
-                              className={`rounded-md ${[0, 1, 3, 5, 6, 7, 9, 10, 14, 15, 16, 18, 19, 20, 21, 22, 23].includes(i) ? 'bg-[#1E293B]' : 'bg-transparent'}`} 
-                            />
-                          ))}
-                        </div>
+                        <QRCode 
+                          value={JSON.stringify({
+                            qrToken: qrToken,
+                            bookingId: state.contact.phone,
+                            attendee: `${attendee.firstName} ${attendee.lastName}`,
+                            seat: `${row}${num}`,
+                            tier: tierName,
+                            timestamp: Date.now()
+                          })}
+                          size={160}
+                          className="rounded-lg"
+                        />
                       </div>
                     </div>
 

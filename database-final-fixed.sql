@@ -74,6 +74,9 @@ CREATE TABLE booking_seats (
     seat_id UUID NOT NULL REFERENCES seats(id) ON DELETE CASCADE,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
+    qr_token VARCHAR(255) UNIQUE,
+    checked_in BOOLEAN DEFAULT FALSE,
+    checked_in_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(booking_id, seat_id)
 );
@@ -95,7 +98,10 @@ CREATE INDEX idx_access_codes_code ON access_codes(code);
 CREATE INDEX idx_access_codes_tier_id ON access_codes(tier_id);
 CREATE INDEX idx_access_codes_is_used ON access_codes(is_used);
 CREATE INDEX idx_bookings_email ON bookings(email);
+CREATE INDEX idx_bookings_phone ON bookings(phone);
 CREATE INDEX idx_booking_seats_booking_id ON booking_seats(booking_id);
+CREATE INDEX idx_booking_seats_qr_token ON booking_seats(qr_token);
+CREATE INDEX idx_booking_seats_checked_in ON booking_seats(checked_in);
 CREATE INDEX idx_booking_codes_booking_id ON booking_codes(booking_id);
 CREATE INDEX idx_tiers_code_prefix ON tiers(code_prefix);
 

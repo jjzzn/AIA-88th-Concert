@@ -83,16 +83,46 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
     setIsRetrieving(true);
     
     try {
-      const booking = await bookingService.getBooking(retrievalPhone);
+      const bookings = await bookingService.getBookingByPhone(retrievalPhone);
       
-      if (!booking) {
+      if (!bookings || bookings.length === 0) {
         setRetrievalError('ไม่พบข้อมูลการจองด้วยเบอร์นี้');
         setIsRetrieving(false);
         return;
       }
 
-      setViewingTicket(null);
-      setRetrievalError('Feature coming soon - Booking retrieval');
+      // Get the most recent booking
+      const latestBooking = bookings[0];
+      
+      // Transform booking data to match the expected format
+      const attendees = latestBooking.booking_seats?.map((bs: any) => ({
+        firstName: bs.first_name,
+        lastName: bs.last_name,
+        seatId: bs.seat_id,
+        qrToken: bs.qr_token,
+      })) || [];
+
+      const seats = latestBooking.booking_seats?.map((bs: any) => ({
+        id: bs.seats.id,
+        row: bs.seats.row,
+        number: bs.seats.number,
+        tier_id: bs.seats.tier_id,
+        zone_id: bs.seats.zone_id,
+        is_booked: true,
+        qr_token: bs.qr_token,
+      })) || [];
+
+      setViewingTicket({
+        attendees,
+        selectedSeats: seats,
+        contact: {
+          email: latestBooking.email,
+          phone: latestBooking.phone,
+        },
+        selectedTier: null,
+        codes: [],
+      });
+      
       setIsRetrieving(false);
     } catch (error) {
       setRetrievalError('เกิดข้อผิดพลาดในการค้นหา');

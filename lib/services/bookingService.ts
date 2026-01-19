@@ -56,6 +56,7 @@ export const bookingService = {
         seat_id: seat.seatId,
         first_name: seat.firstName,
         last_name: seat.lastName,
+        qr_token: crypto.randomUUID(),
       }));
 
       const { error: seatsError } = await supabase
@@ -118,6 +119,38 @@ export const bookingService = {
     } catch (error) {
       console.error('Failed to fetch booking:', error);
       return null;
+    }
+  },
+
+  async getBookingByPhone(phone: string) {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          booking_seats (
+            id,
+            first_name,
+            last_name,
+            seat_id,
+            qr_token,
+            seats (
+              id,
+              row,
+              number,
+              tier_id,
+              zone_id
+            )
+          )
+        `)
+        .eq('phone', phone)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Failed to fetch booking by phone:', error);
+      return [];
     }
   },
 };
