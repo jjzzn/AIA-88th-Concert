@@ -15,12 +15,30 @@
             background-color: #ffffff;
             color: #1e293b;
         }
-        /* Hide scrollbars for cleaner mobile look */
-        ::-webkit-scrollbar {
-            display: none;
-        }
+        /* Custom scrollbar for seat map */
         .seat-map-container {
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        .seat-map-container::-webkit-scrollbar {
+            height: 8px;
+            display: block;
+        }
+        .seat-map-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .seat-map-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .seat-map-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Hide other scrollbars */
+        ::-webkit-scrollbar {
+            display: none;
         }
     </style>
 <script type="importmap">

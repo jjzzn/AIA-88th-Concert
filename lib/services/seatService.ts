@@ -15,7 +15,6 @@ export const seatService = {
         .from('seats')
         .select('*, zones(*)')
         .eq('tier_id', tierId)
-        .eq('is_booked', false)
         .order('row')
         .order('number');
 

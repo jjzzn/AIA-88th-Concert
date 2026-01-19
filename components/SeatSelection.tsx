@@ -249,8 +249,8 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack }) =>
       </div>
 
       {/* Seat Map */}
-      <div className="flex-1 overflow-x-auto seat-map-container px-6 mb-8 py-2">
-        <div className="min-w-fit flex flex-col items-center gap-5">
+      <div className="flex-1 overflow-x-auto overflow-y-visible seat-map-container px-6 mb-8 py-2 scroll-smooth">
+        <div className="min-w-fit flex flex-col items-start gap-5">
           {Object.keys(rows).map((rowName) => (
             <div key={rowName} className="flex items-center gap-5">
               <span className="w-4 text-[11px] font-black text-slate-400">{rowName}</span>
@@ -262,11 +262,11 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack }) =>
                     <button
                       key={seat.id}
                       onClick={() => handleSeatClick(seat)}
-                      disabled={seat.isBooked}
+                      disabled={seat.is_booked}
                       className={`
                         relative w-9 h-9 rounded-xl transition-all duration-300 transform flex items-center justify-center
                         text-[8px] font-black tracking-tighter
-                        ${seat.isBooked 
+                        ${seat.is_booked 
                           ? 'bg-slate-50 border border-slate-100 text-slate-200 cursor-not-allowed' 
                           : isSelected 
                             ? 'bg-[#E4002B] text-white ring-4 ring-red-100 scale-110 shadow-lg z-10' 
