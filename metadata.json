@@ -1,0 +1,7 @@
+{
+  "name": "AIA Concert Ticket Mini-App",
+  "description": "A mobile-first concert ticketing application with multi-code validation, interactive seat selection with adjacency rules, and digital confirmation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
