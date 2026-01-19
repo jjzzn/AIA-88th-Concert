@@ -125,7 +125,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
               value={code}
               onChange={(e) => handleCodeChange(index, e.target.value)}
               placeholder="XXXXXXXX"
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-4 text-center text-lg font-mono tracking-wide focus:border-[#E4002B] focus:ring-1 focus:ring-[#E4002B] outline-none transition uppercase text-slate-800"
+              className="w-full bg-white border-2 border-[#E4002B] rounded-xl px-4 py-4 text-center text-lg font-mono tracking-wide focus:border-[#E4002B] focus:ring-2 focus:ring-[#E4002B]/20 outline-none transition uppercase text-slate-800"
             />
             {codes.length > 1 && (
               <button 
