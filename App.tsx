@@ -155,9 +155,7 @@ const App: React.FC = () => {
           <button onClick={handleBack} className={`p-1 rounded-full transition ${step === 'CODE_ENTRY' ? 'opacity-0 pointer-events-none' : 'hover:bg-slate-50'}`}>
             <ChevronLeft className="w-6 h-6 text-slate-800" />
           </button>
-          <h1 className="text-lg font-bold text-slate-900">
-            {step === 'CODE_ENTRY' ? 'Enter Code' : step === 'SEAT_SELECTION' ? 'Seat Selection' : 'Attendee Details'}
-          </h1>
+          
           <div className="w-6" /> {/* Spacer */}
         </div>
         {/* Countdown Timer */}

@@ -110,13 +110,26 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
   };
 
   return (
-    <div className="px-4 py-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-[#E4002B]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#E4002B]/20">
-          <Ticket className="w-8 h-8 text-[#E4002B]" />
+    <div className="px-4 py-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* AIA Logo and Title */}
+      <div className="text-center space-y-6 pt-4">
+        {/* AIA Logo */}
+        <div className="flex justify-center">
+          <div className="w-16 h-16 bg-[#E4002B] rounded-lg flex items-center justify-center">
+            <span className="text-white text-2xl font-black">AIA</span>
+          </div>
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-1">ระบุรหัสบัตร</h2>
-        <p className="text-slate-500 text-sm">กรุณาระบุรหัส 8 หลัก (เช่น PT4K7M2N) สูงสุด 5 รหัส</p>
+        
+        {/* Concert Title */}
+        <h1 className="text-3xl font-normal text-[#E4002B] tracking-wide">
+          AIA 88th Year Concert
+        </h1>
+      </div>
+
+      {/* Code Entry Section */}
+      <div className="text-center space-y-4">
+        <h2 className="text-xl font-black text-slate-900">ระบุรหัสบัตร</h2>
+        <p className="text-slate-500 text-sm">กรุณาระบุรหัส 8 หลัก สูงสุด 5 รหัส</p>
       </div>
 
       <div className="space-y-3">
@@ -126,13 +139,13 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
               type="text"
               value={code}
               onChange={(e) => handleCodeChange(index, e.target.value)}
-              placeholder="XXXXXXXX"
-              className="w-full bg-white border-2 border-[#E4002B] rounded-xl px-4 py-4 text-center text-lg font-mono tracking-wide focus:border-[#E4002B] focus:ring-2 focus:ring-[#E4002B]/20 outline-none transition uppercase text-slate-800"
+              placeholder="X X X X X X X X"
+              className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-5 text-center text-xl font-bold tracking-[0.5em] focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition uppercase text-slate-400 placeholder:text-slate-300"
             />
             {codes.length > 1 && (
               <button 
                 onClick={() => handleRemoveCode(index)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500 transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -143,7 +156,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
         {codes.length < 5 && (
           <button 
             onClick={handleAddCode}
-            className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-2 text-slate-400 hover:text-[#E4002B] hover:border-[#E4002B] transition font-medium"
+            className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center gap-2 text-slate-400 hover:text-[#E4002B] hover:border-[#E4002B] transition font-bold text-sm"
           >
             <Plus className="w-5 h-5" />
             <span>เพิ่มรหัสบัตร</span>
@@ -152,21 +165,21 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 flex items-start gap-3 text-sm">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <p className="font-medium">{error}</p>
+        <div className="bg-red-50 border-2 border-red-100 text-red-600 rounded-2xl p-4 flex items-start gap-3 text-sm">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+          <p className="font-bold">{error}</p>
         </div>
       )}
 
-      <div className="space-y-3 pt-2">
+      <div className="space-y-4 pt-4">
         <button
           onClick={validate}
           disabled={validating}
-          className="w-full py-4 bg-[#E4002B] text-white rounded-xl font-bold text-lg shadow-lg shadow-red-500/20 hover:bg-red-700 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-5 bg-[#E4002B] text-white rounded-2xl font-black text-lg shadow-xl shadow-red-500/25 hover:bg-red-700 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {validating ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-6 h-6 animate-spin" />
               <span>กำลังตรวจสอบ...</span>
             </>
           ) : (
@@ -176,10 +189,10 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
 
         <button
           onClick={() => setIsRetrievalModalOpen(true)}
-          className="w-full py-4 bg-white border border-[#E4002B] text-[#E4002B] rounded-xl font-bold text-lg hover:bg-red-50 active:scale-[0.98] transition flex items-center justify-center gap-2"
+          className="w-full py-5 bg-white border-2 border-slate-200 text-slate-700 rounded-2xl font-bold text-base hover:bg-slate-50 active:scale-[0.98] transition flex items-center justify-center gap-2"
         >
           <Search className="w-5 h-5" />
-          <span>View My Ticket</span>
+          <span>ตรวจสอบตั๋วของฉัน (View My Ticket)</span>
         </button>
       </div>
 
