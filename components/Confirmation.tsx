@@ -55,6 +55,8 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
             const row = seat?.row || 'A';
             const num = seat?.number?.toString().padStart(2, '0') || '01';
             const qrToken = (attendee as any).qrToken || (seat as any)?.qr_token || crypto.randomUUID();
+            const isCheckedIn = (attendee as any).isCheckedIn || false;
+            const checkedInAt = (attendee as any).checkedInAt;
 
             return (
               <div 
@@ -99,19 +101,42 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
 
                     {/* QR Code Area - Clean & Centered */}
                     <div className="flex justify-center py-2">
-                      <div className="p-6 bg-[#F8FAFC] rounded-[40px] border border-slate-100 shadow-[inset_0_2px_8px_rgba(0,0,0,0.03)]">
+                      <div className={`p-6 bg-[#F8FAFC] rounded-[40px] border border-slate-100 shadow-[inset_0_2px_8px_rgba(0,0,0,0.03)] relative ${isCheckedIn ? 'opacity-60' : ''}`}>
+                        {isCheckedIn && (
+                          <>
+                            {/* Semi-transparent overlay */}
+                            <div className="absolute inset-0 bg-white/40 rounded-[40px] z-10" />
+                            
+                            {/* Red stamp overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center z-20">
+                              <div className="relative">
+                                {/* Red diagonal stamp */}
+                                <div className="bg-[#E4002B] text-white px-8 py-3 transform -rotate-12 border-4 border-[#E4002B] shadow-lg">
+                                  <p className="text-xl font-black uppercase tracking-wider whitespace-nowrap">
+                                    ถูกใช้แล้ว (USED)
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Checked-in timestamp */}
+                            {checkedInAt && (
+                              <div className="absolute bottom-2 left-0 right-0 text-center z-20">
+                                <p className="text-[10px] text-slate-600 font-bold bg-white/80 inline-block px-3 py-1 rounded-full">
+                                  {new Date(checkedInAt).toLocaleString('th-TH')}
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        )}
                         <QRCode 
-                          value={JSON.stringify({
-                            qrToken: qrToken,
-                            bookingId: state.contact.phone,
-                            attendee: `${attendee.firstName} ${attendee.lastName}`,
-                            seat: `${row}${num}`,
-                            tier: tierName,
-                            timestamp: Date.now()
-                          })}
+                          value={qrToken}
                           size={160}
                           className="rounded-lg"
                         />
+                        <p className="text-[11px] text-center text-slate-600 font-mono mt-3 tracking-wide font-bold">
+                          {qrToken}
+                        </p>
                       </div>
                     </div>
 

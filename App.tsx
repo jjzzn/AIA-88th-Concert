@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BookingStep, BookingState, Tier, Seat, Attendee, ContactInfo } from './types';
 import CodeEntry from './components/CodeEntry';
 import SeatSelection from './components/SeatSelection';
@@ -7,6 +6,7 @@ import DetailsForm from './components/DetailsForm';
 import Confirmation from './components/Confirmation';
 import { ChevronLeft } from 'lucide-react';
 import { useBooking } from './lib/hooks';
+import { bookingService } from './lib/services';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<BookingStep>('CODE_ENTRY');
@@ -18,11 +18,15 @@ const App: React.FC = () => {
     contact: { email: '', phone: '' },
   });
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { createBooking, loading: bookingLoading } = useBooking();
 
   const handleCodesSubmit = (codes: string[], tier: Tier) => {
     setState(prev => ({ ...prev, codes, selectedTier: tier }));
     setStep('SEAT_SELECTION');
+    // Start 5-minute countdown (300 seconds)
+    setTimeRemaining(300);
   };
 
   const handleSeatsSubmit = (seats: Seat[]) => {
@@ -52,8 +56,27 @@ const App: React.FC = () => {
     });
 
     if (result.success && result.bookingId) {
+      // Fetch booking with qr_tokens
+      const booking = await bookingService.getBooking(result.bookingId);
+      
+      if (booking && booking.booking_seats) {
+        // Update attendees with qr_token
+        const updatedAttendees = attendees.map((attendee, index) => ({
+          ...attendee,
+          qrToken: booking.booking_seats[index]?.qr_token || '',
+        }));
+        
+        setState(prev => ({ ...prev, attendees: updatedAttendees }));
+      }
+      
       setBookingId(result.bookingId);
       setStep('CONFIRMATION');
+      // Clear timer on successful booking
+      setTimeRemaining(null);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     } else {
       alert('เกิดข้อผิดพลาดในการจอง: ' + (result.error || 'Unknown error'));
     }
@@ -69,11 +92,59 @@ const App: React.FC = () => {
     });
     setBookingId(null);
     setStep('CODE_ENTRY');
+    setTimeRemaining(null);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
   };
 
   const handleBack = () => {
-    if (step === 'SEAT_SELECTION') setStep('CODE_ENTRY');
+    if (step === 'SEAT_SELECTION') {
+      setStep('CODE_ENTRY');
+      // Clear timer when going back to code entry
+      setTimeRemaining(null);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
     if (step === 'DETAILS') setStep('SEAT_SELECTION');
+  };
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (timeRemaining !== null && timeRemaining > 0) {
+      timerRef.current = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev === null || prev <= 1) {
+            // Time's up - reset booking
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
+            alert('หมดเวลาในการจอง กรุณาเริ่มใหม่อีกครั้ง');
+            resetBooking();
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [timeRemaining]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -89,6 +160,20 @@ const App: React.FC = () => {
           </h1>
           <div className="w-6" /> {/* Spacer */}
         </div>
+        {/* Countdown Timer */}
+        {timeRemaining !== null && step !== 'CODE_ENTRY' && (
+          <div className="mt-3 flex items-center justify-center gap-2 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl py-2 px-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-sm font-bold text-slate-600">เวลาที่เหลือ:</span>
+              <span className={`text-lg font-black tabular-nums ${
+                timeRemaining <= 60 ? 'text-red-600 animate-pulse' : 'text-slate-900'
+              }`}>
+                {formatTime(timeRemaining)}
+              </span>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Content Area */}
@@ -100,13 +185,15 @@ const App: React.FC = () => {
             maxSeats={state.codes.length} 
             onSubmit={handleSeatsSubmit} 
             onBack={handleBack}
+            timeRemaining={timeRemaining}
           />
         )}
         {step === 'DETAILS' && (
           <div className="px-4 py-6">
             <DetailsForm 
               seats={state.selectedSeats} 
-              onSubmit={handleDetailsSubmit} 
+              onSubmit={handleDetailsSubmit}
+              timeRemaining={timeRemaining}
             />
           </div>
         )}

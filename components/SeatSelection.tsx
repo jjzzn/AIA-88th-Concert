@@ -10,9 +10,10 @@ interface Props {
   maxSeats: number;
   onSubmit: (seats: Seat[]) => void;
   onBack: () => void;
+  timeRemaining?: number | null;
 }
 
-const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack }) => {
+const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, timeRemaining }) => {
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -228,15 +229,14 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack }) =>
           <span className="text-xs font-bold uppercase tracking-widest">Back to Zones</span>
         </button>
         
+        <p className="text-[10px] font-bold text-[#E4002B] uppercase tracking-wider mb-1">STEP 1 OF 3</p>
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-black text-slate-900">{selectedZone.name}</h2>
-          <div className="px-3 py-1 rounded-full bg-red-50 border border-red-100">
-             <span className="text-[10px] font-black text-[#E4002B] uppercase tracking-tighter">SELECT {maxSeats} SEATS</span>
-          </div>
+          <h2 className="text-xl font-black text-slate-900">เลือกที่นั่ง</h2>
+          <p className="text-xs text-slate-400 font-medium">NEXT: <span className="text-slate-600 font-bold">กรอกชื่อ</span></p>
         </div>
         <div className="flex gap-1.5 h-1.5 w-full mb-6">
-          <div className="flex-1 bg-slate-100 rounded-full" />
           <div className="flex-1 bg-[#E4002B] rounded-full" />
+          <div className="flex-1 bg-slate-100 rounded-full" />
           <div className="flex-1 bg-slate-100 rounded-full" />
         </div>
       </div>

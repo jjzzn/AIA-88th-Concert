@@ -25,6 +25,12 @@ export interface BookingResult {
   error?: string;
 }
 
+// Generate QR Token in format: AIA-XXXXXX (6 random digits)
+function generateQRToken(): string {
+  const randomDigits = Math.floor(100000 + Math.random() * 900000); // 6-digit number
+  return `AIA-${randomDigits}`;
+}
+
 export const bookingService = {
   async createBooking(bookingData: BookingData): Promise<BookingResult> {
     try {
@@ -56,7 +62,7 @@ export const bookingService = {
         seat_id: seat.seatId,
         first_name: seat.firstName,
         last_name: seat.lastName,
-        qr_token: crypto.randomUUID(),
+        qr_token: generateQRToken(),
       }));
 
       const { error: seatsError } = await supabase
@@ -134,12 +140,25 @@ export const bookingService = {
             last_name,
             seat_id,
             qr_token,
+            checked_in,
             seats (
               id,
               row,
               number,
               tier_id,
-              zone_id
+              zone_id,
+              tiers (
+                id,
+                name,
+                level,
+                price,
+                color,
+                description
+              )
+            ),
+            check_ins (
+              id,
+              checked_in_at
             )
           )
         `)

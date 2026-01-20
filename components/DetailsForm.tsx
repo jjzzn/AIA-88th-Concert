@@ -6,9 +6,10 @@ import { User, Mail, Phone, ArrowRight } from 'lucide-react';
 interface Props {
   seats: Seat[];
   onSubmit: (attendees: Attendee[], contact: ContactInfo) => void;
+  timeRemaining?: number | null;
 }
 
-const DetailsForm: React.FC<Props> = ({ seats, onSubmit }) => {
+const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining }) => {
   const [attendees, setAttendees] = useState<Attendee[]>(
     seats.map(s => ({ firstName: '', lastName: '', seatId: s.id }))
   );
