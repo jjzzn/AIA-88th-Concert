@@ -67,15 +67,26 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
 
   const validateAdjacency = (selected: Seat[]) => {
     if (selected.length <= 1) return true;
+    
     const rowGroups: Record<string, number[]> = {};
     selected.forEach(s => {
       if (!rowGroups[s.row]) rowGroups[s.row] = [];
       rowGroups[s.row].push(s.number);
     });
+    
     for (const row in rowGroups) {
       const nums = rowGroups[row].sort((a, b) => a - b);
+      
+      // Check spacing between selected seats
       for (let i = 0; i < nums.length - 1; i++) {
-        if (nums[i + 1] - nums[i] !== 1) return false;
+        const gap = nums[i + 1] - nums[i];
+        
+        // Allow adjacent seats (gap = 1) or seats with gap >= 2
+        // Disallow gap of exactly 1 empty seat (gap = 2 means 1 seat between)
+        if (gap === 2) {
+          return false; // ห้ามเว้นที่ว่าง 1 ที่
+        }
+        // gap = 1 (ติดกัน) หรือ gap >= 3 (ห่างกัน 2 ที่ขึ้นไป) = OK
       }
     }
     return true;
@@ -88,7 +99,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
     }
     const selectedSeats = zoneSeats.filter(s => selectedSeatIds.includes(s.id));
     if (!validateAdjacency(selectedSeats)) {
-      setError('ต้องเลือกที่นั่งติดกันเท่านั้น ไม่สามารถจองเว้นที่ว่างได้');
+      setError('ไม่สามารถเว้นที่ว่างเพียง 1 ที่ได้ กรุณาเลือกที่นั่งติดกัน หรือห่างกันอย่างน้อย 2 ที่');
       return;
     }
     onSubmit(selectedSeats);
