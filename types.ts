@@ -5,7 +5,6 @@ export interface Tier {
   id: string;
   name: string;
   level: string;
-  price: number;
   color: string;
   description: string;
 }

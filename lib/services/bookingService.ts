@@ -16,7 +16,6 @@ export interface BookingData {
     firstName: string;
     lastName: string;
   }>;
-  totalAmount: number;
 }
 
 export interface BookingResult {
@@ -47,7 +46,6 @@ export const bookingService = {
         .insert({
           email: bookingData.email,
           phone: bookingData.phone,
-          total_amount: bookingData.totalAmount,
           status: 'confirmed',
         })
         .select()
@@ -99,10 +97,36 @@ export const bookingService = {
 
       await codeService.markCodesAsUsed(bookingData.codes);
 
+      // Send confirmation email
+      try {
+        await this.sendConfirmationEmail(booking.id);
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+        // Don't fail the booking if email fails
+      }
+
       return { success: true, bookingId: booking.id };
     } catch (error) {
       console.error('Booking creation error:', error);
       return { success: false, error: 'An unexpected error occurred' };
+    }
+  },
+
+  async sendConfirmationEmail(bookingId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-booking-confirmation', {
+        body: { bookingId },
+      });
+
+      if (error) {
+        console.error('Email function error:', error);
+        return false;
+      }
+
+      return data?.success || false;
+    } catch (error) {
+      console.error('Failed to invoke email function:', error);
+      return false;
     }
   },
 

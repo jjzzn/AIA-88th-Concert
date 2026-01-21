@@ -52,7 +52,6 @@ const App: React.FC = () => {
         firstName: a.firstName,
         lastName: a.lastName,
       })),
-      totalAmount: state.selectedTier.price * attendees.length,
     });
 
     if (result.success && result.bookingId) {

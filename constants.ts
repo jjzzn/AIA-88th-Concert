@@ -2,10 +2,10 @@
 import { Tier, Seat, Zone } from './types';
 
 export const TIERS: Tier[] = [
-  { id: 'PLATINUM', name: 'PLATINUM', level: 'ELITE', price: 6500, color: '#9f1239', description: 'Exclusive access to Front Row sections' },
-  { id: 'GOLD', name: 'GOLD', level: 'PREMIUM', price: 4500, color: '#be123c', description: 'Great views from the middle sections' },
-  { id: 'SILVER', name: 'SILVER', level: 'STANDARD', price: 3500, color: '#fb7185', description: 'Balanced view and value' },
-  { id: 'CLASSIC', name: 'CLASSIC', level: 'BASIC', price: 2500, color: '#ffe4e6', description: 'Standard arena seating' },
+  { id: 'PLATINUM', name: 'PLATINUM', level: 'ELITE', color: '#9f1239', description: 'Exclusive access to Front Row sections' },
+  { id: 'GOLD', name: 'GOLD', level: 'PREMIUM', color: '#be123c', description: 'Great views from the middle sections' },
+  { id: 'SILVER', name: 'SILVER', level: 'STANDARD', color: '#fb7185', description: 'Balanced view and value' },
+  { id: 'CLASSIC', name: 'CLASSIC', level: 'BASIC', color: '#ffe4e6', description: 'Standard arena seating' },
 ];
 
 export const ZONES: Zone[] = [
