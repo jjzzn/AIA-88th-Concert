@@ -60,22 +60,21 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
   return (
     <div 
       className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300"
+      onClick={onClose}
     >
       <div 
         className="relative w-full max-w-md animate-in zoom-in-95 duration-300"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-[100] pointer-events-auto"
+          onClick={onClose}
+          className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-10 cursor-pointer"
         >
           <X className="w-6 h-6 text-white" />
         </button>
 
-        <div className="bg-white rounded-[32px] overflow-hidden shadow-2xl">
+        <div className="bg-white rounded-[32px] overflow-hidden shadow-2xl relative z-0">
           {loading ? (
             <div className="p-12 text-center">
               <Loader2 className="w-12 h-12 text-[#E4002B] animate-spin mx-auto mb-4" />
@@ -84,14 +83,14 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
           ) : verification?.valid ? (
             <>
               {/* Header */}
-              <div className={`p-6 text-center ${checkInSuccess ? 'bg-gradient-to-br from-emerald-50 to-white' : 'bg-gradient-to-br from-amber-50 to-white'}`}>
-                <div className={`w-16 h-16 ${checkInSuccess ? 'bg-emerald-100' : 'bg-amber-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+              <div className={`p-6 text-center ${checkInSuccess ? 'bg-gradient-to-br from-emerald-50 to-white' : verification.already_checked_in ? 'bg-gradient-to-br from-amber-50 to-white' : 'bg-gradient-to-br from-blue-50 to-white'}`}>
+                <div className={`w-16 h-16 ${checkInSuccess ? 'bg-emerald-100' : verification.already_checked_in ? 'bg-amber-100' : 'bg-blue-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
                   {checkInSuccess ? (
                     <CheckCircle2 className="w-8 h-8 text-emerald-600" />
                   ) : verification.already_checked_in ? (
                     <AlertCircle className="w-8 h-8 text-amber-600" />
                   ) : (
-                    <Clock className="w-8 h-8 text-amber-500" />
+                    <Clock className="w-8 h-8 text-blue-500" />
                   )}
                 </div>
                 <h3 className={`text-2xl font-black mb-2 ${checkInSuccess ? 'text-slate-900' : verification.already_checked_in ? 'text-amber-600' : 'text-slate-900'}`}>
@@ -102,7 +101,7 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
                     TICKET ID: #{qrToken}
                   </p>
                 )}
-                {verification.already_checked_in && !checkInSuccess && (
+                {!checkInSuccess && verification.already_checked_in && (
                   <p className="text-sm font-medium text-slate-600">
                     ตั๋วนี้ได้ทำการ Check-in แล้ว
                   </p>
@@ -160,14 +159,14 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
                 {checkInSuccess ? (
                   <button
                     onClick={onClose}
-                    className="w-full py-4 bg-slate-100 text-slate-700 rounded-[20px] font-bold text-base hover:bg-slate-200 transition"
+                    className="w-full py-4 bg-slate-100 text-slate-700 rounded-[20px] font-bold text-base hover:bg-slate-200 transition cursor-pointer relative z-10"
                   >
                     กลับสู่หน้าหลัก
                   </button>
                 ) : verification.already_checked_in ? (
                   <button
                     onClick={onClose}
-                    className="w-full py-4 bg-slate-200 text-slate-700 rounded-[20px] font-black text-lg hover:bg-slate-300 transition"
+                    className="w-full py-4 bg-slate-200 text-slate-700 rounded-[20px] font-black text-lg hover:bg-slate-300 transition cursor-pointer relative z-10"
                   >
                     ปิด
                   </button>
@@ -175,7 +174,7 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
                   <button
                     onClick={handleCheckIn}
                     disabled={checkingIn}
-                    className="w-full py-4 bg-[#E4002B] text-white rounded-[20px] font-black text-lg flex items-center justify-center gap-3 hover:bg-red-700 active:scale-[0.98] transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-4 bg-[#E4002B] text-white rounded-[20px] font-black text-lg flex items-center justify-center gap-3 hover:bg-red-700 active:scale-[0.98] transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer relative z-10"
                   >
                     {checkingIn ? (
                       <>
@@ -214,7 +213,7 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
 
                 <button
                   onClick={onClose}
-                  className="w-full py-4 bg-slate-200 text-slate-700 rounded-[20px] font-black text-lg hover:bg-slate-300 transition"
+                  className="w-full py-4 bg-slate-200 text-slate-700 rounded-[20px] font-black text-lg hover:bg-slate-300 transition cursor-pointer relative z-10"
                 >
                   ปิด
                 </button>

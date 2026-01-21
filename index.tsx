@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import AdminPage from './pages/admin';
+import SeatSwapPage from './pages/seat-swap';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -22,9 +23,14 @@ const Router: React.FC = () => {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  // Check if path is /admin
-  if (currentPath === '/admin' || currentPath === '/admin/') {
+  // Check if path is /check-in
+  if (currentPath === '/check-in' || currentPath === '/check-in/') {
     return <AdminPage />;
+  }
+
+  // Check if path is /admin/seat-swap
+  if (currentPath === '/admin/seat-swap' || currentPath === '/admin/seat-swap/') {
+    return <SeatSwapPage />;
   }
 
   // Default to main app
