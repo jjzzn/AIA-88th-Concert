@@ -1,9 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Tier, Seat, Zone } from '../types';
 import { Star, ChevronRight, Info, MapPin, LayoutGrid, Users, ArrowLeft, Loader2 } from 'lucide-react';
 import { useSeats } from '../lib/hooks';
 import { seatService } from '../lib/services';
+import { seatLockService, SeatAvailability } from '../lib/services/seatLockService';
 
 interface Props {
   tier: Tier;
@@ -18,10 +19,11 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
+  const [seatAvailability, setSeatAvailability] = useState<Record<string, SeatAvailability>>({});
   
   const { seats: allSeats, loading, error: seatsError, refreshSeats } = useSeats(tier.id);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadZones = async () => {
       const fetchedZones = await seatService.getZonesByTier(tier.id);
       setZones(fetchedZones);
@@ -38,6 +40,43 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
     return allSeats.filter(s => s.zone_id === selectedZone.id);
   }, [selectedZone, allSeats]);
 
+  // Check seat availability when zone changes or seats load
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (zoneSeats.length === 0) return;
+      
+      const seatIds = zoneSeats.map(s => s.id);
+      console.log('🔍 Checking availability for seats:', seatIds);
+      
+      const availability = await seatLockService.checkAvailability(seatIds);
+      console.log('📊 Availability result:', availability);
+      
+      const availabilityMap: Record<string, SeatAvailability> = {};
+      availability.forEach(avail => {
+        availabilityMap[avail.seatId] = avail;
+        if (avail.status === 'locked') {
+          console.log('🔒 Locked seat found:', avail.seatId, 'by', avail.lockedBy);
+        }
+      });
+      
+      console.log('💾 Setting availability map:', availabilityMap);
+      
+      // Log summary of locked seats
+      const lockedSeats = availability.filter(a => a.status === 'locked');
+      if (lockedSeats.length > 0) {
+        console.log('🔒 LOCKED SEATS FOUND:', lockedSeats.map(s => s.seatId));
+      }
+      
+      setSeatAvailability(availabilityMap);
+    };
+    
+    checkAvailability();
+    
+    // Refresh availability every 10 seconds
+    const interval = setInterval(checkAvailability, 10000);
+    return () => clearInterval(interval);
+  }, [zoneSeats]);
+
   const rows = useMemo(() => {
     const r: Record<string, Seat[]> = {};
     zoneSeats.forEach(s => {
@@ -52,6 +91,14 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
 
   const handleSeatClick = (seat: Seat) => {
     if (seat.is_booked) return;
+    
+    // Check if seat is locked by someone else
+    const availability = seatAvailability[seat.id];
+    if (availability && availability.status === 'locked') {
+      setError('ที่นั่งนี้กำลังถูกเลือกโดยผู้ใช้อื่น');
+      return;
+    }
+    
     setError(null);
     
     if (selectedSeatIds.includes(seat.id)) {
@@ -268,17 +315,32 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
               <div className="flex gap-3">
                 {rows[rowName].map(seat => {
                   const isSelected = selectedSeatIds.includes(seat.id);
+                  const availability = seatAvailability[seat.id];
+                  const isLocked = availability?.status === 'locked';
                   const seatLabel = `${seat.row}${seat.number.toString().padStart(2, '0')}`;
+                  
+                  // Debug: log ALL locked seats
+                  if (isLocked) {
+                    console.log(`🔒 LOCKED SEAT: ${seat.row}${seat.number.toString().padStart(2, '0')}`, {
+                      seatId: seat.id,
+                      status: availability?.status,
+                      lockedBy: availability?.lockedBy,
+                      isLocked: true
+                    });
+                  }
+                  
                   return (
                     <button
                       key={seat.id}
                       onClick={() => handleSeatClick(seat)}
-                      disabled={seat.is_booked}
+                      disabled={seat.is_booked || isLocked}
                       className={`
                         relative w-9 h-9 rounded-xl transition-all duration-300 transform flex items-center justify-center
                         text-[8px] font-black tracking-tighter
                         ${seat.is_booked 
                           ? 'bg-slate-50 border border-slate-100 text-slate-200 cursor-not-allowed' 
+                          : isLocked
+                            ? 'bg-yellow-400 text-yellow-900 cursor-not-allowed border border-yellow-500 opacity-75'
                           : isSelected 
                             ? 'bg-[#E4002B] text-white ring-4 ring-red-100 scale-110 shadow-lg z-10' 
                             : 'bg-slate-900 text-slate-400 hover:bg-slate-700 shadow-sm'}
@@ -297,7 +359,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
 
       {/* Legend */}
       <div className="px-6 mb-8">
-        <div className="flex items-center justify-center gap-6 p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
+        <div className="flex items-center justify-center gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-md bg-slate-900" />
             <span className="text-[10px] font-bold text-slate-500 uppercase">ว่าง</span>
@@ -305,6 +367,10 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-md bg-[#E4002B]" />
             <span className="text-[10px] font-bold text-slate-500 uppercase">เลือก</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-md bg-yellow-400 border border-yellow-500" />
+            <span className="text-[10px] font-bold text-slate-500 uppercase">กำลังจอง</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-md bg-slate-100" />

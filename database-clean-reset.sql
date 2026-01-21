@@ -1,18 +1,25 @@
--- AIA Concert Ticket Booking System - Final 8 Tiers
--- Code Format: XXXXXXXX (8 characters, no hyphen)
--- Run this entire script in Supabase SQL Editor
+-- AIA Concert Ticket Booking System - Clean Reset
+-- This script will DROP all existing tables and recreate them
+-- WARNING: This will DELETE ALL DATA!
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Drop existing tables if they exist (for clean setup)
+-- Drop all tables in correct order (reverse dependency order)
+DROP TABLE IF EXISTS check_ins CASCADE;
 DROP TABLE IF EXISTS booking_codes CASCADE;
 DROP TABLE IF EXISTS booking_seats CASCADE;
 DROP TABLE IF EXISTS bookings CASCADE;
 DROP TABLE IF EXISTS access_codes CASCADE;
 DROP TABLE IF EXISTS seats CASCADE;
 DROP TABLE IF EXISTS zones CASCADE;
+DROP TABLE IF EXISTS admin_users CASCADE;
+DROP TABLE IF EXISTS gates CASCADE;
 DROP TABLE IF EXISTS tiers CASCADE;
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ============================================================================
+-- CREATE TABLES
+-- ============================================================================
 
 -- Tiers Table (8 Tiers)
 CREATE TABLE tiers (
@@ -77,6 +84,7 @@ CREATE TABLE booking_seats (
     checked_in BOOLEAN DEFAULT FALSE,
     checked_in_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    note TEXT,
     UNIQUE(booking_id, seat_id)
 );
 
@@ -89,7 +97,43 @@ CREATE TABLE booking_codes (
     UNIQUE(booking_id, code_id)
 );
 
--- Create Indexes
+-- Gates Table (for check-in)
+CREATE TABLE gates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Admin Users Table
+CREATE TABLE admin_users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    gate_id UUID REFERENCES gates(id),
+    role VARCHAR(50) DEFAULT 'staff',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP WITH TIME ZONE
+);
+
+-- Check-ins Table
+CREATE TABLE check_ins (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    booking_seat_id UUID NOT NULL UNIQUE REFERENCES booking_seats(id) ON DELETE CASCADE,
+    admin_user_id UUID NOT NULL REFERENCES admin_users(id),
+    gate_id UUID NOT NULL REFERENCES gates(id),
+    checked_in_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT
+);
+
+-- ============================================================================
+-- CREATE INDEXES
+-- ============================================================================
+
 CREATE INDEX idx_seats_tier_id ON seats(tier_id);
 CREATE INDEX idx_seats_zone_id ON seats(zone_id);
 CREATE INDEX idx_seats_is_booked ON seats(is_booked);
@@ -103,6 +147,10 @@ CREATE INDEX idx_booking_seats_qr_token ON booking_seats(qr_token);
 CREATE INDEX idx_booking_seats_checked_in ON booking_seats(checked_in);
 CREATE INDEX idx_booking_codes_booking_id ON booking_codes(booking_id);
 CREATE INDEX idx_tiers_code_prefix ON tiers(code_prefix);
+CREATE INDEX idx_check_ins_booking_seat_id ON check_ins(booking_seat_id);
+CREATE INDEX idx_check_ins_gate_id ON check_ins(gate_id);
+CREATE INDEX idx_admin_users_username ON admin_users(username);
+CREATE INDEX idx_gates_code ON gates(code);
 
 -- ============================================================================
 -- INSERT DATA - 8 TIERS
@@ -119,7 +167,7 @@ INSERT INTO tiers (id, code_prefix, name, level, price, color, description) VALU
     ('77777777-7777-7777-7777-777777777777', 'CL', 'CLASSIC', 'STANDARD', 2500.00, '#8B7355', 'Classic Section - Traditional concert experience'),
     ('88888888-8888-8888-8888-888888888888', 'OT', 'OTHER', 'BASIC', 1800.00, '#A9A9A9', 'Other Section - Budget-friendly option');
 
--- Insert Zones (2-3 zones per tier) - Fixed UUID format
+-- Insert Zones (2-3 zones per tier)
 INSERT INTO zones (id, name, tier_id, capacity) VALUES
     -- PLATINUM zones
     ('a1111111-1111-1111-1111-111111111111', 'ZONE PT-A', '11111111-1111-1111-1111-111111111111', 40),
@@ -146,11 +194,11 @@ INSERT INTO zones (id, name, tier_id, capacity) VALUES
     ('f1111111-1111-1111-1111-111111111111', 'ZONE AG-A', '66666666-6666-6666-6666-666666666666', 100),
     ('f2222222-2222-2222-2222-222222222222', 'ZONE AG-B', '66666666-6666-6666-6666-666666666666', 100),
     
-    -- CLASSIC zones (fixed: g -> c with unique suffix)
+    -- CLASSIC zones
     ('c7111111-1111-1111-1111-111111111111', 'ZONE CL-A', '77777777-7777-7777-7777-777777777777', 120),
     ('c7222222-2222-2222-2222-222222222222', 'ZONE CL-B', '77777777-7777-7777-7777-777777777777', 120),
     
-    -- OTHER zones (fixed: h -> c with unique suffix)
+    -- OTHER zones
     ('c8111111-1111-1111-1111-111111111111', 'ZONE OT-A', '88888888-8888-8888-8888-888888888888', 150),
     ('c8222222-2222-2222-2222-222222222222', 'ZONE OT-B', '88888888-8888-8888-8888-888888888888', 150);
 
@@ -240,7 +288,16 @@ INSERT INTO access_codes (code, tier_id) VALUES
     ('OT6X4JL1', '88888888-8888-8888-8888-888888888888'),
     ('OT2H8VK9', '88888888-8888-8888-8888-888888888888');
 
--- Verify data
+-- Insert Sample Gates
+INSERT INTO gates (name, code, description) VALUES
+    ('Gate A', 'GATE-A', 'Main entrance gate'),
+    ('Gate B', 'GATE-B', 'Side entrance gate'),
+    ('Gate C', 'GATE-C', 'VIP entrance gate');
+
+-- ============================================================================
+-- VERIFY DATA
+-- ============================================================================
+
 SELECT 'DATA SUMMARY' as info;
 SELECT 'Tiers created:' as info, COUNT(*) as count FROM tiers
 UNION ALL
@@ -248,7 +305,9 @@ SELECT 'Zones created:', COUNT(*) FROM zones
 UNION ALL
 SELECT 'Seats created:', COUNT(*) FROM seats
 UNION ALL
-SELECT 'Access codes created:', COUNT(*) FROM access_codes;
+SELECT 'Access codes created:', COUNT(*) FROM access_codes
+UNION ALL
+SELECT 'Gates created:', COUNT(*) FROM gates;
 
 -- Show tier data
 SELECT 'TIER DATA' as section;
@@ -261,4 +320,7 @@ SELECT 'SAMPLE ACCESS CODES' as section;
 SELECT t.code_prefix, t.name, ac.code, ac.is_used
 FROM access_codes ac
 JOIN tiers t ON ac.tier_id = t.id
-ORDER BY t.price DESC, ac.code;
+ORDER BY t.price DESC, ac.code
+LIMIT 20;
+
+SELECT '✅ Database reset complete!' as status;
