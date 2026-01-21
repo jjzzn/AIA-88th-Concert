@@ -142,10 +142,13 @@ export const adminService = {
         return false;
       }
 
-      // Update booking_seats.checked_in to true
+      // Update booking_seats.checked_in to true and set timestamp
       const { error: updateError } = await supabase
         .from('booking_seats')
-        .update({ checked_in: true })
+        .update({ 
+          checked_in: true,
+          checked_in_at: new Date().toISOString()
+        })
         .eq('id', bookingSeatId);
 
       if (updateError) {

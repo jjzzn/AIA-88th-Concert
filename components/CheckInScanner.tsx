@@ -24,9 +24,18 @@ const CheckInScanner: React.FC = () => {
     setResult(null);
 
     try {
-      // Parse QR code data
-      const qrData = JSON.parse(qrInput);
-      const checkInResult = await checkinService.checkIn(qrData.qrToken);
+      let qrToken: string;
+      
+      // Try to parse as JSON first
+      try {
+        const qrData = JSON.parse(qrInput);
+        qrToken = qrData.qrToken || qrData.token || qrInput.trim();
+      } catch {
+        // If not JSON, use as plain text (e.g., "AIA-123456")
+        qrToken = qrInput.trim();
+      }
+      
+      const checkInResult = await checkinService.checkIn(qrToken);
       
       setResult(checkInResult);
       

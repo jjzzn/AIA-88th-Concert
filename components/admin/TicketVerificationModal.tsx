@@ -28,20 +28,39 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
   };
 
   const handleCheckIn = async () => {
+    console.log('🎯 Check-in button clicked');
+    console.log('Verification:', verification);
+    console.log('Admin User:', adminUser);
+    
     if (!verification?.valid || !verification.booking_seat_id || verification.already_checked_in) {
+      console.error('❌ Check-in validation failed:', {
+        valid: verification?.valid,
+        booking_seat_id: verification?.booking_seat_id,
+        already_checked_in: verification?.already_checked_in
+      });
       return;
     }
 
+    if (!adminUser.gate_id) {
+      console.error('❌ Admin user has no gate_id');
+      alert('ไม่สามารถ Check-in ได้: ไม่พบข้อมูล Gate\nกรุณาติดต่อผู้ดูแลระบบ');
+      return;
+    }
+
+    console.log('✅ Starting check-in...');
     setCheckingIn(true);
+    
     const success = await adminService.checkIn(
       verification.booking_seat_id,
       adminUser.id,
-      adminUser.gate_id || ''
+      adminUser.gate_id
     );
 
+    console.log('Check-in result:', success);
     setCheckingIn(false);
     
     if (success) {
+      console.log('✅ Check-in successful!');
       // Update verification to show checked in
       setVerification({
         ...verification,
@@ -54,6 +73,9 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
       
       // Notify parent immediately
       onCheckInComplete();
+    } else {
+      console.error('❌ Check-in failed');
+      alert('เกิดข้อผิดพลาดในการ Check-in\nกรุณาลองอีกครั้ง');
     }
   };
 
@@ -68,7 +90,10 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
       >
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-10 cursor-pointer"
         >
           <X className="w-6 h-6 text-white" />
