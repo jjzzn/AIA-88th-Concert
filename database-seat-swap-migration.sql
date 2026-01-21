@@ -1,19 +1,134 @@
 -- Migration: Add Seat Swap System
 -- This migration adds support for seat swapping functionality with audit trail
 
--- Step 1: Ensure booking_seats.id is UUID (fix if needed)
--- Check and fix the id column type if it's not UUID
+-- Step 1: Fix bookings.id and booking_seats.id type if not UUID
 DO $$ 
 BEGIN
-    -- Check if id column is not UUID
+    -- First, convert bookings.id to UUID
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'bookings' 
+        AND column_name = 'id' 
+        AND data_type != 'uuid'
+    ) THEN
+        -- Drop foreign key constraints that reference bookings.id
+        ALTER TABLE IF EXISTS booking_seats 
+        DROP CONSTRAINT IF EXISTS booking_seats_booking_id_fkey;
+        
+        ALTER TABLE IF EXISTS seat_swap_history 
+        DROP CONSTRAINT IF EXISTS seat_swap_history_booking_id_fkey;
+        
+        ALTER TABLE IF EXISTS booking_codes 
+        DROP CONSTRAINT IF EXISTS booking_codes_booking_id_fkey;
+        
+        -- Drop default value
+        ALTER TABLE bookings ALTER COLUMN id DROP DEFAULT;
+        
+        -- Convert bookings.id to UUID
+        ALTER TABLE bookings 
+        ALTER COLUMN id TYPE UUID USING (
+            CASE 
+                WHEN id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' 
+                THEN id::UUID
+                ELSE uuid_generate_v4()
+            END
+        );
+        
+        -- Set new default
+        ALTER TABLE bookings ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+        
+        -- Convert booking_seats.booking_id to UUID
+        ALTER TABLE booking_seats 
+        ALTER COLUMN booking_id TYPE UUID USING (
+            CASE 
+                WHEN booking_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' 
+                THEN booking_id::UUID
+                ELSE NULL
+            END
+        );
+        
+        -- Recreate foreign key for booking_seats
+        ALTER TABLE booking_seats 
+        ADD CONSTRAINT booking_seats_booking_id_fkey 
+        FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE;
+        
+        -- Convert booking_codes.booking_id to UUID if table exists
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'booking_codes' 
+            AND column_name = 'booking_id'
+        ) THEN
+            ALTER TABLE booking_codes 
+            ALTER COLUMN booking_id TYPE UUID USING (
+                CASE 
+                    WHEN booking_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' 
+                    THEN booking_id::UUID
+                    ELSE NULL
+                END
+            );
+            
+            -- Recreate foreign key for booking_codes
+            ALTER TABLE booking_codes 
+            ADD CONSTRAINT booking_codes_booking_id_fkey 
+            FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE;
+        END IF;
+        
+        RAISE NOTICE 'Converted bookings.id to UUID type';
+    END IF;
+    
+    -- Then, convert booking_seats.id to UUID
     IF EXISTS (
         SELECT 1 FROM information_schema.columns 
         WHERE table_name = 'booking_seats' 
         AND column_name = 'id' 
         AND data_type != 'uuid'
     ) THEN
-        -- This should not happen in production, but just in case
-        RAISE NOTICE 'Warning: booking_seats.id is not UUID type. Please fix manually.';
+        -- Drop all foreign key constraints that reference booking_seats.id
+        ALTER TABLE IF EXISTS seat_swap_history 
+        DROP CONSTRAINT IF EXISTS seat_swap_history_booking_seat_id_fkey;
+        
+        ALTER TABLE IF EXISTS check_ins 
+        DROP CONSTRAINT IF EXISTS check_ins_booking_seat_id_fkey;
+        
+        -- Drop default value first
+        ALTER TABLE booking_seats ALTER COLUMN id DROP DEFAULT;
+        
+        -- Convert the column to UUID
+        -- First, ensure all values are valid UUIDs or generate new ones
+        ALTER TABLE booking_seats 
+        ALTER COLUMN id TYPE UUID USING (
+            CASE 
+                WHEN id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' 
+                THEN id::UUID
+                ELSE uuid_generate_v4()
+            END
+        );
+        
+        -- Set new default as UUID
+        ALTER TABLE booking_seats ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+        
+        -- Convert check_ins.booking_seat_id to UUID if it exists
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'check_ins' 
+            AND column_name = 'booking_seat_id'
+        ) THEN
+            -- Delete check_ins records with invalid booking_seat_id (not UUID format)
+            DELETE FROM check_ins 
+            WHERE booking_seat_id IS NULL 
+            OR booking_seat_id !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+            
+            -- Now convert to UUID (all remaining values should be valid)
+            ALTER TABLE check_ins 
+            ALTER COLUMN booking_seat_id TYPE UUID USING booking_seat_id::UUID;
+            
+            -- Recreate foreign key constraint
+            ALTER TABLE check_ins 
+            ADD CONSTRAINT check_ins_booking_seat_id_fkey 
+            FOREIGN KEY (booking_seat_id) REFERENCES booking_seats(id) ON DELETE CASCADE;
+        END IF;
+        
+        RAISE NOTICE 'Converted booking_seats.id to UUID type';
     END IF;
 END $$;
 
