@@ -31,11 +31,11 @@ const SwapConfirmationDialog: React.FC<Props> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300 overflow-y-auto"
       onClick={onCancel}
     >
       <div 
-        className="relative w-full max-w-3xl animate-in zoom-in-95 duration-300"
+        className="relative w-full max-w-2xl my-auto animate-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -49,63 +49,63 @@ const SwapConfirmationDialog: React.FC<Props> = ({
 
         <div className="bg-white rounded-[32px] overflow-hidden shadow-2xl">
           {/* Header */}
-          <div className="p-6 bg-gradient-to-br from-amber-50 to-white border-b border-amber-100">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-amber-600" />
+          <div className="p-4 bg-gradient-to-br from-amber-50 to-white border-b border-amber-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900">ยืนยันการสลับที่นั่ง</h3>
-                <p className="text-sm text-slate-600">กรุณาตรวจสอบข้อมูลก่อนดำเนินการ</p>
+                <h3 className="text-xl font-black text-slate-900">ยืนยันการสลับที่นั่ง</h3>
+                <p className="text-xs text-slate-600">กรุณาตรวจสอบข้อมูลก่อนดำเนินการ</p>
               </div>
             </div>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-4 space-y-4">
             {/* Attendee Info */}
-            <div className="bg-slate-50 rounded-[20px] p-4">
-              <p className="text-xs font-bold text-slate-500 uppercase mb-2">ข้อมูลผู้เข้าร่วม</p>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-slate-50 rounded-[16px] p-3">
+              <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">ข้อมูลผู้เข้าร่วม</p>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-600">ชื่อ</p>
-                  <p className="text-lg font-black text-slate-900">
+                  <p className="text-xs font-medium text-slate-600">ชื่อ</p>
+                  <p className="text-sm font-black text-slate-900">
                     {bookingInfo.first_name} {bookingInfo.last_name}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-600">QR Code</p>
-                  <p className="text-lg font-mono font-bold text-blue-600">{bookingInfo.qr_token}</p>
+                  <p className="text-xs font-medium text-slate-600">QR Code</p>
+                  <p className="text-sm font-mono font-bold text-blue-600">{bookingInfo.qr_token}</p>
                 </div>
               </div>
             </div>
 
             {/* Seat Comparison */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
               {/* Old Seat */}
-              <div className="bg-red-50 rounded-[20px] p-6 border-2 border-red-100">
-                <p className="text-xs font-bold text-red-600 uppercase mb-4">ที่นั่งเดิม</p>
-                <div className="space-y-3">
+              <div className="bg-red-50 rounded-[16px] p-3 border-2 border-red-100">
+                <p className="text-[10px] font-bold text-red-600 uppercase mb-2">ที่นั่งเดิม</p>
+                <div className="space-y-2">
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase">Tier</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Tier</p>
                     <p 
-                      className="text-xl font-black uppercase"
+                      className="text-sm font-black uppercase"
                       style={{ color: oldSeat.tier_color }}
                     >
                       {oldSeat.tier_name}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase">Zone</p>
-                    <p className="text-lg font-black text-slate-900">{oldSeat.zone_name}</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Zone</p>
+                    <p className="text-xs font-black text-slate-900">{oldSeat.zone_name}</p>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex gap-3">
                     <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase">Row</p>
-                      <p className="text-2xl font-black text-slate-900">{oldSeat.row}</p>
+                      <p className="text-[9px] font-bold text-slate-500 uppercase">Row</p>
+                      <p className="text-lg font-black text-slate-900">{oldSeat.row}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase">Seat</p>
-                      <p className="text-2xl font-black text-red-600">
+                      <p className="text-[9px] font-bold text-slate-500 uppercase">Seat</p>
+                      <p className="text-lg font-black text-red-600">
                         {oldSeat.number.toString().padStart(2, '0')}
                       </p>
                     </div>
@@ -115,34 +115,34 @@ const SwapConfirmationDialog: React.FC<Props> = ({
 
               {/* Arrow */}
               <div className="flex items-center justify-center">
-                <ArrowRight className="w-8 h-8 text-slate-400" />
+                <ArrowRight className="w-6 h-6 text-slate-400" />
               </div>
 
               {/* New Seat */}
-              <div className="bg-green-50 rounded-[20px] p-6 border-2 border-green-200">
-                <p className="text-xs font-bold text-green-600 uppercase mb-4">ที่นั่งใหม่</p>
-                <div className="space-y-3">
+              <div className="bg-green-50 rounded-[16px] p-3 border-2 border-green-200">
+                <p className="text-[10px] font-bold text-green-600 uppercase mb-2">ที่นั่งใหม่</p>
+                <div className="space-y-2">
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase">Tier</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Tier</p>
                     <p 
-                      className="text-xl font-black uppercase"
+                      className="text-sm font-black uppercase"
                       style={{ color: newSeat.tier_color }}
                     >
                       {newSeat.tier_name}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase">Zone</p>
-                    <p className="text-lg font-black text-slate-900">{newSeat.zone_name}</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Zone</p>
+                    <p className="text-xs font-black text-slate-900">{newSeat.zone_name}</p>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex gap-3">
                     <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase">Row</p>
-                      <p className="text-2xl font-black text-slate-900">{newSeat.row}</p>
+                      <p className="text-[9px] font-bold text-slate-500 uppercase">Row</p>
+                      <p className="text-lg font-black text-slate-900">{newSeat.row}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase">Seat</p>
-                      <p className="text-2xl font-black text-green-600">
+                      <p className="text-[9px] font-bold text-slate-500 uppercase">Seat</p>
+                      <p className="text-lg font-black text-green-600">
                         {newSeat.number.toString().padStart(2, '0')}
                       </p>
                     </div>
@@ -173,14 +173,14 @@ const SwapConfirmationDialog: React.FC<Props> = ({
 
             {/* Reason (Optional) */}
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 เหตุผลในการสลับที่นั่ง (ไม่บังคับ)
               </label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="เช่น ผู้ใช้ขอเปลี่ยนเนื่องจาก..."
-                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-[16px] text-slate-900 font-medium focus:border-blue-500 focus:bg-white outline-none transition resize-none"
+                className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-[12px] text-sm text-slate-900 font-medium focus:border-blue-500 focus:bg-white outline-none transition resize-none"
                 rows={2}
                 disabled={loading}
               />
@@ -188,26 +188,26 @@ const SwapConfirmationDialog: React.FC<Props> = ({
 
             {/* Admin Notes (Optional) */}
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 บันทึกของ Admin (ไม่บังคับ)
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="บันทึกเพิ่มเติมสำหรับ internal use..."
-                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-[16px] text-slate-900 font-medium focus:border-blue-500 focus:bg-white outline-none transition resize-none"
+                className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-[12px] text-sm text-slate-900 font-medium focus:border-blue-500 focus:bg-white outline-none transition resize-none"
                 rows={2}
                 disabled={loading}
               />
             </div>
 
             {/* Important Notice */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-[16px] p-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-[12px] p-3">
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-bold text-blue-900 mb-1">สิ่งที่จะเกิดขึ้น</p>
-                  <ul className="text-sm text-blue-800 space-y-1">
+                  <p className="text-xs font-bold text-blue-900 mb-1">สิ่งที่จะเกิดขึ้น</p>
+                  <ul className="text-xs text-blue-800 space-y-0.5">
                     <li>• ที่นั่งจะถูกเปลี่ยนในระบบทันที</li>
                     <li>• QR Code ยังคงเหมือนเดิม (ไม่เปลี่ยนแปลง)</li>
                     <li>• ระบบจะส่งอีเมลแจ้งเตือนไปยังผู้ใช้อัตโนมัติ</li>
@@ -218,27 +218,27 @@ const SwapConfirmationDialog: React.FC<Props> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={onCancel}
                 disabled={loading}
-                className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[20px] font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[16px] font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={loading}
-                className="flex-1 py-4 bg-green-600 hover:bg-green-700 text-white rounded-[20px] font-black text-lg flex items-center justify-center gap-3 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-[16px] font-black text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     <span>กำลังดำเนินการ...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="w-6 h-6" />
+                    <CheckCircle2 className="w-5 h-5" />
                     <span>ยืนยันการสลับ</span>
                   </>
                 )}
