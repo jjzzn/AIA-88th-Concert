@@ -7,6 +7,7 @@ import Confirmation from './components/Confirmation';
 import { ChevronLeft } from 'lucide-react';
 import { useBooking } from './lib/hooks';
 import { bookingService } from './lib/services';
+import { seatLockService } from './lib/services/seatLockService';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<BookingStep>('CODE_ENTRY');
@@ -29,13 +30,38 @@ const App: React.FC = () => {
     setTimeRemaining(300);
   };
 
-  const handleSeatsSubmit = (seats: Seat[]) => {
-    setState(prev => ({ 
-      ...prev, 
-      selectedSeats: seats,
-      attendees: seats.map(s => ({ firstName: '', lastName: '', seatId: s.id }))
-    }));
+  const handleSeatsSubmit = async (seats: Seat[]) => {
+    // Lock seats for 5 minutes
+    const seatIds = seats.map(s => s.id);
+    const lockResult = await seatLockService.lockSeats(seatIds, 5);
+    
+    if (!lockResult.success) {
+      alert(lockResult.message || 'ไม่สามารถจองที่นั่งได้ กรุณาลองใหม่อีกครั้ง');
+      // Remove unavailable seats
+      const unavailable = [...lockResult.alreadyLocked, ...lockResult.alreadyBooked];
+      const availableSeats = seats.filter(s => !unavailable.includes(s.id));
+      
+      if (availableSeats.length === 0) {
+        return; // No seats available
+      }
+      
+      // Update with only available seats
+      setState(prev => ({ 
+        ...prev, 
+        selectedSeats: availableSeats,
+        attendees: availableSeats.map(s => ({ firstName: '', lastName: '', seatId: s.id }))
+      }));
+    } else {
+      setState(prev => ({ 
+        ...prev, 
+        selectedSeats: seats,
+        attendees: seats.map(s => ({ firstName: '', lastName: '', seatId: s.id }))
+      }));
+    }
+    
     setStep('DETAILS');
+    // Start 5-minute timer (300 seconds)
+    setTimeRemaining(300);
   };
 
   const handleDetailsSubmit = async (attendees: Attendee[], contact: ContactInfo) => {
@@ -55,6 +81,11 @@ const App: React.FC = () => {
     });
 
     if (result.success && result.bookingId) {
+      // Unlock seats (they're now booked)
+      const seatIds = state.selectedSeats.map(s => s.id);
+      await seatLockService.unlockSeats(seatIds);
+      seatLockService.clearSession();
+      
       // Fetch booking with qr_tokens
       const booking = await bookingService.getBooking(result.bookingId);
       
@@ -81,7 +112,14 @@ const App: React.FC = () => {
     }
   };
 
-  const resetBooking = () => {
+  const resetBooking = async () => {
+    // Unlock seats if any were selected
+    if (state.selectedSeats.length > 0) {
+      const seatIds = state.selectedSeats.map(s => s.id);
+      await seatLockService.unlockSeats(seatIds);
+    }
+    seatLockService.clearSession();
+    
     setState({
       codes: [],
       selectedTier: null,
@@ -98,7 +136,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     if (step === 'SEAT_SELECTION') {
       setStep('CODE_ENTRY');
       // Clear timer when going back to code entry
@@ -108,7 +146,14 @@ const App: React.FC = () => {
         timerRef.current = null;
       }
     }
-    if (step === 'DETAILS') setStep('SEAT_SELECTION');
+    if (step === 'DETAILS') {
+      // Unlock seats when going back to seat selection
+      if (state.selectedSeats.length > 0) {
+        const seatIds = state.selectedSeats.map(s => s.id);
+        await seatLockService.unlockSeats(seatIds);
+      }
+      setStep('SEAT_SELECTION');
+    }
   };
 
   // Timer countdown effect

@@ -105,7 +105,8 @@ serve(async (req) => {
             </table>
           </div>
           <div style="padding: 24px; text-align: center;">
-            <img src="${qrCodeUrl}" alt="QR Code" style="width: 160px; height: 160px; display: block; margin: 0 auto 20px auto;">
+            <img src="${qrCodeUrl}" alt="QR Code" style="width: 160px; height: 160px; display: block; margin: 0 auto 12px auto;">
+            <p style="margin: 0 0 20px 0; font-size: 13px; font-weight: 700; color: #6B7280; letter-spacing: 0.5px;">${att.qrToken}</p>
             
             <div style="display: inline-block; background: #FEF2F2; padding: 8px 24px; border-radius: 8px; border: 1px solid #FEE2E2;">
               <span style="color: #991B1B; font-size: 12px; font-weight: 600; text-transform: uppercase; display: block;">Seat Number</span>
@@ -168,10 +169,6 @@ serve(async (req) => {
               <div style="background-color: #F9FAFB; padding: 24px; border-radius: 12px; margin-bottom: 32px;">
                 <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700;">Order Summary</h3>
                 <table style="width: 100%; font-size: 14px;">
-                  <tr>
-                    <td style="padding-bottom: 8px; color: #6B7280;">Order ID</td>
-                    <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">#${booking.phone}</td>
-                  </tr>
                   <tr>
                     <td style="padding-bottom: 8px; color: #6B7280;">Customer</td>
                     <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">${booking.email}</td>
