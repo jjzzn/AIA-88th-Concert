@@ -204,9 +204,9 @@ const SeatSwapZoneMap: React.FC<Props> = ({
         ) : (
           <div>
             {/* Stage */}
-            <div className="mb-6 flex justify-center">
-              <div className="w-full max-w-[320px] py-3 bg-slate-900 rounded-full flex items-center justify-center">
-                <span className="text-xs font-black text-white uppercase tracking-[0.4em]">STAGE</span>
+            <div className="mb-8 flex justify-center">
+              <div className="w-full max-w-[400px] py-4 bg-slate-900 rounded-full flex items-center justify-center">
+                <span className="text-sm font-black text-white uppercase tracking-[0.6em]">STAGE</span>
               </div>
             </div>
 
@@ -214,7 +214,7 @@ const SeatSwapZoneMap: React.FC<Props> = ({
             <div className="space-y-3">
               {/* Row A zones */}
               {filteredZones.filter(z => z.zone_name && z.zone_name.includes(' A')).length > 0 && (
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-center gap-4">
                   {filteredZones
                     .filter(z => z.zone_name && z.zone_name.includes(' A'))
                     .sort((a, b) => (a.zone_name || '').localeCompare(b.zone_name || ''))
@@ -222,7 +222,7 @@ const SeatSwapZoneMap: React.FC<Props> = ({
                       <button
                         key={zone.zone_id}
                         onClick={() => setSelectedZone(zone.zone_id)}
-                        className="w-32 h-20 bg-[#E4002B] hover:bg-[#c00024] text-white rounded-[24px] flex items-center justify-center font-black text-xl transition-all hover:scale-105 active:scale-95 shadow-lg"
+                        className="w-36 h-24 bg-[#E4002B] hover:bg-[#c00024] text-white rounded-[28px] flex items-center justify-center font-black text-2xl transition-all hover:scale-105 active:scale-95 shadow-lg"
                       >
                         {(zone.zone_name || '').replace('ZONE ', '')}
                       </button>
@@ -232,7 +232,7 @@ const SeatSwapZoneMap: React.FC<Props> = ({
 
               {/* Row B zones */}
               {filteredZones.filter(z => z.zone_name && z.zone_name.includes(' B')).length > 0 && (
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-center gap-4">
                   {filteredZones
                     .filter(z => z.zone_name && z.zone_name.includes(' B'))
                     .sort((a, b) => (a.zone_name || '').localeCompare(b.zone_name || ''))
@@ -240,7 +240,7 @@ const SeatSwapZoneMap: React.FC<Props> = ({
                       <button
                         key={zone.zone_id}
                         onClick={() => setSelectedZone(zone.zone_id)}
-                        className="w-28 h-20 bg-[#E4002B] hover:bg-[#c00024] text-white rounded-[24px] flex items-center justify-center font-black text-xl transition-all hover:scale-105 active:scale-95 shadow-lg"
+                        className="w-32 h-24 bg-[#E4002B] hover:bg-[#c00024] text-white rounded-[28px] flex items-center justify-center font-black text-2xl transition-all hover:scale-105 active:scale-95 shadow-lg"
                       >
                         {(zone.zone_name || '').replace('ZONE ', '')}
                       </button>
@@ -250,7 +250,7 @@ const SeatSwapZoneMap: React.FC<Props> = ({
 
               {/* Row C and D zones */}
               {(filteredZones.filter(z => z.zone_name && (z.zone_name.includes(' C') || z.zone_name.includes(' D'))).length > 0) && (
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-center gap-4">
                   {filteredZones
                     .filter(z => z.zone_name && (z.zone_name.includes(' C') || z.zone_name.includes(' D')))
                     .sort((a, b) => {
@@ -264,7 +264,7 @@ const SeatSwapZoneMap: React.FC<Props> = ({
                       <button
                         key={zone.zone_id}
                         onClick={() => setSelectedZone(zone.zone_id)}
-                        className="w-24 h-18 bg-[#E4002B] hover:bg-[#c00024] text-white rounded-[20px] flex items-center justify-center font-black text-lg transition-all hover:scale-105 active:scale-95 shadow-lg"
+                        className="w-28 h-24 bg-[#E4002B] hover:bg-[#c00024] text-white rounded-[28px] flex items-center justify-center font-black text-xl transition-all hover:scale-105 active:scale-95 shadow-lg"
                       >
                         {(zone.zone_name || '').replace('ZONE ', '')}
                       </button>
@@ -347,8 +347,8 @@ const SeatSwapZoneMap: React.FC<Props> = ({
                         onClick={() => handleSeatClick(seat)}
                         disabled={seat.is_booked && !isCurrent}
                         className={`
-                          relative w-9 h-9 rounded-xl transition-all duration-300 transform flex items-center justify-center
-                          text-[8px] font-black tracking-tighter
+                          relative w-12 h-12 rounded-xl transition-all duration-300 transform flex items-center justify-center
+                          text-[10px] font-black tracking-tighter
                           ${
                             isCurrent
                               ? 'bg-red-100 border-2 border-red-300 text-red-600 cursor-not-allowed'

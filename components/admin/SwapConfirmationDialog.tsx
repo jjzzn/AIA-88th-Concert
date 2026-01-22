@@ -82,30 +82,27 @@ const SwapConfirmationDialog: React.FC<Props> = ({
             {/* Seat Comparison */}
             <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
               {/* Old Seat */}
-              <div className="bg-red-50 rounded-[16px] p-3 border-2 border-red-100">
-                <p className="text-[10px] font-bold text-red-600 uppercase mb-2">ที่นั่งเดิม</p>
-                <div className="space-y-2">
+              <div className="bg-red-50 rounded-[20px] p-4 border-2 border-red-100">
+                <p className="text-[10px] font-bold text-red-600 uppercase mb-3">ที่นั่งเดิม</p>
+                <div className="space-y-3">
                   <div>
-                    <p className="text-[9px] font-bold text-slate-500 uppercase">Tier</p>
-                    <p 
-                      className="text-sm font-black uppercase"
-                      style={{ color: oldSeat.tier_color }}
-                    >
+                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">TIER</p>
+                    <p className="text-xl font-black uppercase text-slate-900">
                       {oldSeat.tier_name}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[9px] font-bold text-slate-500 uppercase">Zone</p>
-                    <p className="text-xs font-black text-slate-900">{oldSeat.zone_name}</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">ZONE</p>
+                    <p className="text-base font-black text-slate-900">{oldSeat.zone_name}</p>
                   </div>
-                  <div className="flex gap-3">
-                    <div>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase">Row</p>
-                      <p className="text-lg font-black text-slate-900">{oldSeat.row}</p>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">ROW</p>
+                      <p className="text-2xl font-black text-slate-900">{oldSeat.row}</p>
                     </div>
-                    <div>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase">Seat</p>
-                      <p className="text-lg font-black text-red-600">
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">SEAT</p>
+                      <p className="text-2xl font-black text-red-600">
                         {oldSeat.number.toString().padStart(2, '0')}
                       </p>
                     </div>
@@ -115,34 +112,34 @@ const SwapConfirmationDialog: React.FC<Props> = ({
 
               {/* Arrow */}
               <div className="flex items-center justify-center">
-                <ArrowRight className="w-6 h-6 text-slate-400" />
+                <ArrowRight className="w-8 h-8 text-slate-300" />
               </div>
 
               {/* New Seat */}
-              <div className="bg-green-50 rounded-[16px] p-3 border-2 border-green-200">
-                <p className="text-[10px] font-bold text-green-600 uppercase mb-2">ที่นั่งใหม่</p>
-                <div className="space-y-2">
+              <div className="bg-green-50 rounded-[20px] p-4 border-2 border-green-200">
+                <p className="text-[10px] font-bold text-green-600 uppercase mb-3">ที่นั่งใหม่</p>
+                <div className="space-y-3">
                   <div>
-                    <p className="text-[9px] font-bold text-slate-500 uppercase">Tier</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">TIER</p>
                     <p 
-                      className="text-sm font-black uppercase"
+                      className="text-xl font-black uppercase"
                       style={{ color: newSeat.tier_color }}
                     >
                       {newSeat.tier_name}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[9px] font-bold text-slate-500 uppercase">Zone</p>
-                    <p className="text-xs font-black text-slate-900">{newSeat.zone_name}</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">ZONE</p>
+                    <p className="text-base font-black text-slate-900">{newSeat.zone_name}</p>
                   </div>
-                  <div className="flex gap-3">
-                    <div>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase">Row</p>
-                      <p className="text-lg font-black text-slate-900">{newSeat.row}</p>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">ROW</p>
+                      <p className="text-2xl font-black text-slate-900">{newSeat.row}</p>
                     </div>
-                    <div>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase">Seat</p>
-                      <p className="text-lg font-black text-green-600">
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">SEAT</p>
+                      <p className="text-2xl font-black text-green-600">
                         {newSeat.number.toString().padStart(2, '0')}
                       </p>
                     </div>
