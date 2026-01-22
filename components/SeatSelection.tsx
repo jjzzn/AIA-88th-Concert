@@ -17,11 +17,14 @@ interface Props {
 const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, timeRemaining }) => {
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
   const [seatAvailability, setSeatAvailability] = useState<Record<string, SeatAvailability>>({});
+  const [error, setError] = useState<string | null>(null);
   
-  const { seats: allSeats, loading, error: seatsError, refreshSeats } = useSeats(tier.id);
+  // Get zone IDs for fetching seats
+  const zoneIds = useMemo(() => zones.map(z => z.id), [zones]);
+  
+  const { seats: allSeats, loading, error: seatsError, refreshSeats } = useSeats(tier.id, zoneIds);
 
   useEffect(() => {
     const loadZones = async () => {
@@ -160,37 +163,58 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
   }, [selectedSeatIds, zoneSeats]);
 
   // Arena Mini-Map Helper
-  const ArenaMap = () => (
-    <div className="w-full bg-slate-50 rounded-[32px] p-6 mb-6 border border-slate-100">
-      <div className="flex flex-col items-center">
-        {/* Stage */}
-        <div className="w-[240px] py-2.5 bg-slate-900 rounded-full mb-6 flex items-center justify-center">
-          <span className="text-[9px] font-black text-white uppercase tracking-[0.6em]">STAGE</span>
-        </div>
-        
-        {/* Platinum Rows */}
-        <div className="flex gap-3 mb-4 justify-center">
-          <div className={`w-16 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${tier.name === 'PLATINUM' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>A1</div>
-          <div className={`w-16 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${tier.name === 'PLATINUM' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>A2</div>
-        </div>
+  const ArenaMap = () => {
+    // Check if zone is accessible for current tier
+    const isZoneAccessible = (zoneName: string) => {
+      return availableZones.some(z => z.name === zoneName);
+    };
 
-        {/* Gold Rows */}
-        <div className="flex gap-3 mb-4 justify-center">
-          <div className={`w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${tier.name === 'GOLD' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>B1</div>
-          <div className={`w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${tier.name === 'GOLD' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>B2</div>
-          <div className={`w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${tier.name === 'GOLD' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>B3</div>
-        </div>
+    return (
+      <div className="w-full bg-slate-50 rounded-[32px] p-6 mb-6 border border-slate-100">
+        <div className="flex flex-col items-center">
+          {/* Stage */}
+          <div className="w-[240px] py-2.5 bg-slate-900 rounded-full mb-6 flex items-center justify-center">
+            <span className="text-[9px] font-black text-white uppercase tracking-[0.6em]">STAGE</span>
+          </div>
+          
+          {/* Platinum Rows */}
+          <div className="flex gap-3 mb-4 justify-center">
+            <div className={`w-16 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${isZoneAccessible('ZONE A1') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>A1</div>
+            <div className={`w-16 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${isZoneAccessible('ZONE A2') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>A2</div>
+          </div>
 
-        {/* Silver & Classic (Further back) */}
-        <div className="flex gap-2 justify-center">
-          <div className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${tier.name === 'CLASSIC' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-100 text-slate-300'}`}>C1</div>
-          <div className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${tier.name === 'SILVER' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-100 text-slate-300'}`}>D1</div>
-          <div className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${tier.name === 'SILVER' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-100 text-slate-300'}`}>D2</div>
-          <div className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${tier.name === 'CLASSIC' ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-100 text-slate-300'}`}>C2</div>
+          {/* Gold Rows */}
+          <div className="flex gap-3 mb-4 justify-center">
+            <div className={`w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${isZoneAccessible('ZONE B1') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>B1</div>
+            <div className={`w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${isZoneAccessible('ZONE B2') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>B2</div>
+            <div className={`w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${isZoneAccessible('ZONE B3') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-200 text-slate-400'}`}>B3</div>
+          </div>
+
+          {/* Silver & Classic (Further back) */}
+          <div className="flex gap-2 justify-center">
+            <div className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${isZoneAccessible('ZONE C1') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-100 text-slate-300'}`}>C1</div>
+            <div className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${isZoneAccessible('ZONE D1') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-100 text-slate-300'}`}>D1</div>
+            <div className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${isZoneAccessible('ZONE D2') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-100 text-slate-300'}`}>D2</div>
+            <div className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${isZoneAccessible('ZONE C2') ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] scale-105' : 'bg-slate-100 text-slate-300'}`}>C2</div>
+          </div>
+
+          {/* VIP Zone (Special exclusive area) */}
+          {isZoneAccessible('ZONE VIP') && (
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <div className="flex justify-center">
+                <div className="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl flex items-center justify-center text-[11px] font-black uppercase tracking-wider shadow-[0_4px_12px_rgba(251,191,36,0.5)]">
+                  <span className="mr-2">⭐</span>
+                  VIP
+                  <span className="ml-2">⭐</span>
+                </div>
+              </div>
+              <p className="text-center text-[9px] text-slate-500 mt-2 font-medium">Exclusive VIP Seating Area</p>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Zone Selection View
   if (!selectedZone) {

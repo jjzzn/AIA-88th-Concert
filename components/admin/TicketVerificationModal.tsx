@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, AlertCircle, Loader2, UserCheck, Clock } from 'lucide-react';
 import { AdminUser, TicketVerification } from '../../types/admin';
 import { adminService } from '../../lib/services/adminService';
+import Dialog from '../Dialog';
+import { useDialog } from '../../lib/hooks/useDialog';
 
 interface Props {
   qrToken: string;
@@ -15,6 +17,7 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkInSuccess, setCheckInSuccess] = useState(false);
+  const dialog = useDialog();
 
   useEffect(() => {
     verifyTicket();
@@ -43,7 +46,7 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
 
     if (!adminUser.gate_id) {
       console.error('❌ Admin user has no gate_id');
-      alert('ไม่สามารถ Check-in ได้: ไม่พบข้อมูล Gate\nกรุณาติดต่อผู้ดูแลระบบ');
+      dialog.showError('ไม่สามารถ Check-in ได้: ไม่พบข้อมูล Gate\nกรุณาติดต่อผู้ดูแลระบบ');
       return;
     }
 
@@ -75,7 +78,7 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
       onCheckInComplete();
     } else {
       console.error('❌ Check-in failed');
-      alert('เกิดข้อผิดพลาดในการ Check-in\nกรุณาลองอีกครั้ง');
+      dialog.showError('เกิดข้อผิดพลาดในการ Check-in\nกรุณาลองอีกครั้ง');
     }
   };
 
@@ -247,6 +250,18 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
           )}
         </div>
       </div>
+
+      {/* Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.closeDialog}
+        title={dialog.config.title}
+        message={dialog.config.message}
+        type={dialog.config.type}
+        confirmText={dialog.config.confirmText}
+        cancelText={dialog.config.cancelText}
+        onConfirm={dialog.config.onConfirm}
+      />
     </div>
   );
 };

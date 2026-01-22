@@ -4,10 +4,12 @@ import CodeEntry from './components/CodeEntry';
 import SeatSelection from './components/SeatSelection';
 import DetailsForm from './components/DetailsForm';
 import Confirmation from './components/Confirmation';
+import Dialog from './components/Dialog';
 import { ChevronLeft } from 'lucide-react';
 import { useBooking } from './lib/hooks';
 import { bookingService } from './lib/services';
 import { seatLockService } from './lib/services/seatLockService';
+import { useDialog } from './lib/hooks/useDialog';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<BookingStep>('CODE_ENTRY');
@@ -22,6 +24,7 @@ const App: React.FC = () => {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { createBooking, loading: bookingLoading } = useBooking();
+  const dialog = useDialog();
 
   const handleCodesSubmit = (codes: string[], tier: Tier) => {
     setState(prev => ({ ...prev, codes, selectedTier: tier }));
@@ -36,7 +39,7 @@ const App: React.FC = () => {
     const lockResult = await seatLockService.lockSeats(seatIds, 5);
     
     if (!lockResult.success) {
-      alert(lockResult.message || 'ไม่สามารถจองที่นั่งได้ กรุณาลองใหม่อีกครั้ง');
+      dialog.showError(lockResult.message || 'ไม่สามารถจองที่นั่งได้ กรุณาลองใหม่อีกครั้ง');
       // Remove unavailable seats
       const unavailable = [...lockResult.alreadyLocked, ...lockResult.alreadyBooked];
       const availableSeats = seats.filter(s => !unavailable.includes(s.id));
@@ -108,7 +111,7 @@ const App: React.FC = () => {
         timerRef.current = null;
       }
     } else {
-      alert('เกิดข้อผิดพลาดในการจอง: ' + (result.error || 'Unknown error'));
+      dialog.showError('เกิดข้อผิดพลาดในการจอง: ' + (result.error || 'Unknown error'));
     }
   };
 
@@ -167,7 +170,7 @@ const App: React.FC = () => {
               clearInterval(timerRef.current);
               timerRef.current = null;
             }
-            alert('หมดเวลาในการจอง กรุณาเริ่มใหม่อีกครั้ง');
+            dialog.showWarning('หมดเวลาในการจอง กรุณาเริ่มใหม่อีกครั้ง', 'หมดเวลา');
             resetBooking();
             return null;
           }
@@ -245,6 +248,18 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.closeDialog}
+        title={dialog.config.title}
+        message={dialog.config.message}
+        type={dialog.config.type}
+        confirmText={dialog.config.confirmText}
+        cancelText={dialog.config.cancelText}
+        onConfirm={dialog.config.onConfirm}
+      />
     </div>
   );
 };

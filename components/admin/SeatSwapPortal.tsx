@@ -5,6 +5,8 @@ import { BookingInfo, SeatInfo } from '../../types/seat-swap';
 import { seatSwapService } from '../../lib/services/seatSwapService';
 import SeatSwapZoneMap from './SeatSwapZoneMap';
 import SwapConfirmationDialog from './SwapConfirmationDialog';
+import Dialog from '../Dialog';
+import { useDialog } from '../../lib/hooks/useDialog';
 
 interface Props {
   adminUser: AdminUser;
@@ -18,6 +20,7 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
   const [selectedSeat, setSelectedSeat] = useState<SeatInfo | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [swapping, setSwapping] = useState(false);
+  const dialog = useDialog();
 
   const handleVerify = async () => {
     if (!qrCode.trim()) {
@@ -72,12 +75,12 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
         setBookingInfo(null);
         setSelectedSeat(null);
         setShowConfirmation(false);
-        alert('สลับที่นั่งสำเร็จ!');
+        dialog.showSuccess('สลับที่นั่งสำเร็จ!', 'สำเร็จ');
       } else {
-        alert('ไม่สามารถสลับที่นั่งได้: ' + result.message);
+        dialog.showError('ไม่สามารถสลับที่นั่งได้: ' + result.message);
       }
     } catch (err) {
-      alert('เกิดข้อผิดพลาดในการสลับที่นั่ง');
+      dialog.showError('เกิดข้อผิดพลาดในการสลับที่นั่ง');
     } finally {
       setSwapping(false);
     }
@@ -266,6 +269,18 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
           loading={swapping}
         />
       )}
+
+      {/* Dialog */}
+      <Dialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.closeDialog}
+        title={dialog.config.title}
+        message={dialog.config.message}
+        type={dialog.config.type}
+        confirmText={dialog.config.confirmText}
+        cancelText={dialog.config.cancelText}
+        onConfirm={dialog.config.onConfirm}
+      />
     </div>
   );
 };

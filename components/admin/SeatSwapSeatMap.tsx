@@ -129,40 +129,139 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
             <p className="text-slate-600 font-medium">กำลังโหลดโซน...</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {zones.map(zone => (
-              <button
-                key={zone.zone_id}
-                onClick={() => setSelectedZone(zone.zone_id)}
-                className="w-full text-left bg-white border-2 border-slate-200 hover:border-blue-400 rounded-[20px] p-5 transition-all hover:shadow-lg active:scale-[0.98] group"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
-                      {zone.zone_name}
-                    </h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs font-bold text-slate-500">
-                        {zone.seats.length} ที่นั่งว่าง
-                      </span>
-                      <span 
-                        className="text-xs font-bold uppercase px-2 py-0.5 rounded-full"
-                        style={{ 
-                          backgroundColor: zone.tier_color + '20',
-                          color: zone.tier_color 
-                        }}
+          <>
+            {/* Arena Map */}
+            <div className="w-full bg-slate-50 rounded-[32px] p-6 mb-6 border border-slate-100">
+              <div className="flex flex-col items-center">
+                {/* Stage */}
+                <div className="w-[240px] py-2.5 bg-slate-900 rounded-full mb-6 flex items-center justify-center">
+                  <span className="text-[9px] font-black text-white uppercase tracking-[0.6em]">STAGE</span>
+                </div>
+                
+                {/* Platinum Rows (A1, A2) */}
+                <div className="flex gap-3 mb-4 justify-center">
+                  {['ZONE A1', 'ZONE A2'].map(zoneName => {
+                    const zone = zones.find(z => z.zone_name === zoneName);
+                    if (!zone) {
+                      return (
+                        <div
+                          key={zoneName}
+                          className="w-16 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold bg-slate-200 text-slate-400"
+                        >
+                          {zoneName.replace('ZONE ', '')}
+                        </div>
+                      );
+                    }
+                    return (
+                      <button
+                        key={zone.zone_id}
+                        onClick={() => setSelectedZone(zone.zone_id)}
+                        className={`w-16 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${
+                          zone.seats.length > 0 
+                            ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] hover:scale-105 cursor-pointer' 
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        }`}
+                        disabled={zone.seats.length === 0}
                       >
-                        {zone.tier_name}
-                      </span>
+                        {zone.zone_name.replace('ZONE ', '')}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Gold Rows (B1, B2, B3) */}
+                <div className="flex gap-3 mb-4 justify-center">
+                  {['ZONE B1', 'ZONE B2', 'ZONE B3'].map(zoneName => {
+                    const zone = zones.find(z => z.zone_name === zoneName);
+                    if (!zone) {
+                      // Show placeholder if zone doesn't exist in data
+                      return (
+                        <div
+                          key={zoneName}
+                          className="w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold bg-slate-200 text-slate-400"
+                        >
+                          {zoneName.replace('ZONE ', '')}
+                        </div>
+                      );
+                    }
+                    return (
+                      <button
+                        key={zone.zone_id}
+                        onClick={() => setSelectedZone(zone.zone_id)}
+                        className={`w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${
+                          zone.seats.length > 0 
+                            ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] hover:scale-105 cursor-pointer' 
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        }`}
+                        disabled={zone.seats.length === 0}
+                      >
+                        {zone.zone_name.replace('ZONE ', '')}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Silver & Classic (C1, D1, D2, C2) */}
+                <div className="flex gap-2 justify-center">
+                  {['ZONE C1', 'ZONE D1', 'ZONE D2', 'ZONE C2'].map(zoneName => {
+                    const zone = zones.find(z => z.zone_name === zoneName);
+                    if (!zone) return null;
+                    return (
+                      <button
+                        key={zone.zone_id}
+                        onClick={() => setSelectedZone(zone.zone_id)}
+                        className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${
+                          zone.seats.length > 0 
+                            ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] hover:scale-105 cursor-pointer' 
+                            : 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                        }`}
+                        disabled={zone.seats.length === 0}
+                      >
+                        {zone.zone_name.replace('ZONE ', '')}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Zone List */}
+            <div className="space-y-3">
+              {zones.map(zone => (
+                <button
+                  key={zone.zone_id}
+                  onClick={() => setSelectedZone(zone.zone_id)}
+                  disabled={zone.seats.length === 0}
+                  className="w-full text-left bg-white border-2 border-slate-200 hover:border-blue-400 rounded-[20px] p-5 transition-all hover:shadow-lg active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-200"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {zone.zone_name}
+                      </h3>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-xs font-bold text-slate-500">
+                          {zone.seats.length} ที่นั่งว่าง
+                        </span>
+                        <span 
+                          className="text-xs font-bold uppercase px-2 py-0.5 rounded-full"
+                          style={{ 
+                            backgroundColor: zone.tier_color + '20',
+                            color: zone.tier_color 
+                          }}
+                        >
+                          {zone.tier_name}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
+                      <CheckCircle2 className="w-5 h-5 text-slate-400 group-hover:text-blue-600" />
                     </div>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
-                    <CheckCircle2 className="w-5 h-5 text-slate-400 group-hover:text-blue-600" />
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
+          </>
         )}
       </div>
     );
