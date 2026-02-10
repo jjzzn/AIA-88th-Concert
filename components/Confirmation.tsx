@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { BookingState, Seat } from '../types';
-import { CheckCircle2, Download, Share2, Calendar, MapPin, Star } from 'lucide-react';
+import { CheckCircle2, Download, Calendar, MapPin, Star } from 'lucide-react';
 import QRCode from './QRCode';
+import html2canvas from 'html2canvas';
 
 interface Props {
   state: BookingState;
@@ -14,6 +15,50 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
   const tierName = state.selectedTier?.name || 'STANDARD';
   const tierColor = state.selectedTier?.color || '#E4002B';
   const isSingleTicket = state.attendees.length === 1;
+  const ticketRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const handleDownloadImage = async (index: number) => {
+    const ticketElement = ticketRefs.current[index];
+    if (!ticketElement) return;
+
+    try {
+      // Wait for all images (including QR code) to load
+      const images = ticketElement.querySelectorAll('img');
+      await Promise.all(
+        Array.from(images).map((img: HTMLImageElement) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+        })
+      );
+
+      // Small delay to ensure rendering is complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const canvas = await html2canvas(ticketElement, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        foreignObjectRendering: false,
+      });
+
+      const link = document.createElement('a');
+      const attendee = state.attendees[index];
+      const seat = state.selectedSeats.find(s => s.id === attendee.seatId);
+      const fileName = `AIA-Concert-Ticket-${attendee.firstName}-${seat?.row}${seat?.number}.png`;
+      
+      link.download = fileName;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ');
+    }
+  };
 
   return (
     <div className={`space-y-6 pb-10 ${!isPopup ? 'animate-in fade-in zoom-in-95 duration-700' : ''}`}>
@@ -57,13 +102,20 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
             const qrToken = (attendee as any).qrToken || (seat as any)?.qr_token || crypto.randomUUID();
             const isCheckedIn = (attendee as any).isCheckedIn || false;
             const checkedInAt = (attendee as any).checkedInAt;
+            
+            // Get zone information
+            const zoneId = seat?.zone_id || seat?.zoneId || '';
+            const zoneName = (seat as any)?.zones?.name || zoneId || 'N/A';
 
             return (
               <div 
                 key={index} 
                 className={`flex-shrink-0 ${isSingleTicket ? 'w-full' : 'w-[85%] snap-center'} transition-all`}
               >
-                <div className="bg-white rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-slate-50 overflow-hidden h-full flex flex-col">
+                <div 
+                  ref={(el) => (ticketRefs.current[index] = el)}
+                  className="bg-white rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-slate-50 overflow-hidden h-full flex flex-col"
+                >
                   {/* Tier Header Banner */}
                   <div 
                     className="px-6 py-3.5 flex justify-between items-center text-white"
@@ -79,22 +131,28 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
                   </div>
 
                   <div className="p-7 space-y-6 flex-1">
-                    {/* Seat and Row Details */}
-                    <div className="flex justify-between items-end border-b border-slate-50 pb-5">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ATTENDEE NAME</p>
-                        <h3 className="text-xl font-extrabold text-slate-900 uppercase tracking-tight truncate max-w-[160px]">
-                          {attendee.firstName} {attendee.lastName}
-                        </h3>
-                      </div>
-                      <div className="flex gap-5">
-                        <div className="text-center">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ROW</p>
-                          <p className="text-2xl font-black text-slate-900">{row}</p>
+                    {/* Attendee Name at Top */}
+                    <div className="text-center border-b border-slate-50 pb-5">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">ATTENDEE NAME</p>
+                      <h3 className="text-2xl font-extrabold text-slate-900 uppercase tracking-tight">
+                        {attendee.firstName} {attendee.lastName}
+                      </h3>
+                    </div>
+
+                    {/* Zone, Row, Seat above QR code */}
+                    <div className="border-b border-slate-100 pb-5">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ZONE</p>
+                          <p className="text-lg font-black text-slate-900">{zoneName}</p>
                         </div>
-                        <div className="text-center">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SEAT</p>
-                          <p className="text-2xl font-black text-[#E4002B]">{num}</p>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ROW</p>
+                          <p className="text-lg font-black text-slate-900">{row}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">SEAT</p>
+                          <p className="text-lg font-black text-[#E4002B]">{num}</p>
                         </div>
                       </div>
                     </div>
@@ -171,15 +229,35 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-4 px-2">
-        <button className="flex items-center justify-center gap-2 py-4 px-4 bg-white border border-slate-200 rounded-2xl text-slate-800 font-bold text-sm hover:bg-slate-50 transition active:scale-95 shadow-sm">
-          <Download className="w-4 h-4 text-[#E4002B]" />
-          บันทึกรูปภาพ
-        </button>
-        <button className="flex items-center justify-center gap-2 py-4 px-4 bg-white border border-slate-200 rounded-2xl text-slate-800 font-bold text-sm hover:bg-slate-50 transition active:scale-95 shadow-sm">
-          <Share2 className="w-4 h-4 text-[#E4002B]" />
-          ส่งต่อตั๋ว
-        </button>
+      <div className="px-2">
+        {isSingleTicket ? (
+          <button 
+            onClick={() => handleDownloadImage(0)}
+            className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-[#E4002B] text-white rounded-2xl font-bold text-sm hover:bg-red-700 transition active:scale-95 shadow-lg shadow-red-500/25"
+          >
+            <Download className="w-4 h-4" />
+            บันทึกรูปภาพ
+          </button>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-slate-500 text-center uppercase tracking-wider">บันทึกตั๋วแต่ละใบ</p>
+            <div className="grid grid-cols-2 gap-3">
+              {state.attendees.map((attendee, index) => {
+                const seat = state.selectedSeats.find(s => s.id === attendee.seatId);
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleDownloadImage(index)}
+                    className="flex flex-col items-center gap-2 py-3 px-3 bg-white border border-slate-200 rounded-2xl text-slate-800 font-bold text-xs hover:bg-slate-50 hover:border-[#E4002B] transition active:scale-95 shadow-sm"
+                  >
+                    <Download className="w-4 h-4 text-[#E4002B]" />
+                    <span className="truncate w-full text-center">{seat?.row}{seat?.number}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Return Home Button */}

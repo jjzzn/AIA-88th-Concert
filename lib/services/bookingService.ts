@@ -178,6 +178,10 @@ export const bookingService = {
                 price,
                 color,
                 description
+              ),
+              zones (
+                id,
+                name
               )
             ),
             check_ins (

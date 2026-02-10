@@ -116,13 +116,13 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
         {/* AIA Logo */}
         <div className="flex justify-center">
           <div className="w-16 h-16 bg-[#E4002B] rounded-lg flex items-center justify-center">
-            <span className="text-white text-2xl font-black">AIA</span>
+            <span className="text-white text-2xl font-black">88th</span>
           </div>
         </div>
         
         {/* Concert Title */}
         <h1 className="text-3xl font-normal text-[#E4002B] tracking-wide">
-          AIA 88th Year Concert
+          88th Year Concert
         </h1>
       </div>
 
@@ -305,6 +305,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
                                     zone_id: bs.seats.zone_id,
                                     is_booked: true,
                                     qr_token: bs.qr_token,
+                                    zones: bs.seats.zones,
                                   })) || [];
 
                                   // Extract tier from first seat's tiers
