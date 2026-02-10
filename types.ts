@@ -1,5 +1,7 @@
 
-export type BookingStep = 'CODE_ENTRY' | 'SEAT_SELECTION' | 'DETAILS' | 'CONFIRMATION';
+export type BookingStep = 'USER_TYPE_SELECTION' | 'AGENT_CODE_ENTRY' | 'CODE_ENTRY' | 'SEAT_SELECTION' | 'DETAILS' | 'CONFIRMATION';
+
+export type UserType = 'SELF' | 'AGENT';
 
 export interface Tier {
   id: string;
@@ -39,7 +41,14 @@ export interface ContactInfo {
   phone: string;
 }
 
+export interface AgentInfo {
+  agentCode: string;
+  agentName: string;
+}
+
 export interface BookingState {
+  userType: UserType | null;
+  agentInfo: AgentInfo | null;
   codes: string[];
   selectedTier: Tier | null;
   selectedSeats: Seat[];

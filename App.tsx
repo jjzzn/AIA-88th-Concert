@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookingStep, BookingState, Tier, Seat, Attendee, ContactInfo } from './types';
+import { BookingStep, BookingState, Tier, Seat, Attendee, ContactInfo, UserType, AgentInfo } from './types';
+import UserTypeSelection from './components/UserTypeSelection';
+import AgentCodeEntry from './components/AgentCodeEntry';
 import CodeEntry from './components/CodeEntry';
 import SeatSelection from './components/SeatSelection';
 import DetailsForm from './components/DetailsForm';
 import Confirmation from './components/Confirmation';
+import TicketRetrievalModal from './components/TicketRetrievalModal';
 import Dialog from './components/Dialog';
 import { ChevronLeft } from 'lucide-react';
 import { useBooking } from './lib/hooks';
@@ -12,15 +15,32 @@ import { seatLockService } from './lib/services/seatLockService';
 import { useDialog } from './lib/hooks/useDialog';
 
 const App: React.FC = () => {
-  const [step, setStep] = useState<BookingStep>('CODE_ENTRY');
+  const [step, setStep] = useState<BookingStep>('USER_TYPE_SELECTION');
   const [state, setState] = useState<BookingState>({
+    userType: null,
+    agentInfo: null,
     codes: [],
     selectedTier: null,
     selectedSeats: [],
     attendees: [],
     contact: { email: '', phone: '' },
   });
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
+
+  const handleUserTypeSelect = (userType: UserType) => {
+    setState(prev => ({ ...prev, userType }));
+    if (userType === 'AGENT') {
+      setStep('AGENT_CODE_ENTRY');
+    } else {
+      setStep('CODE_ENTRY');
+    }
+  };
+
+  const handleAgentInfoSubmit = (agentInfo: AgentInfo) => {
+    setState(prev => ({ ...prev, agentInfo }));
+    setStep('CODE_ENTRY');
+  };
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { createBooking, loading: bookingLoading } = useBooking();
@@ -124,6 +144,8 @@ const App: React.FC = () => {
     seatLockService.clearSession();
     
     setState({
+      userType: null,
+      agentInfo: null,
       codes: [],
       selectedTier: null,
       selectedSeats: [],
@@ -131,7 +153,7 @@ const App: React.FC = () => {
       contact: { email: '', phone: '' },
     });
     setBookingId(null);
-    setStep('CODE_ENTRY');
+    setStep('USER_TYPE_SELECTION');
     setTimeRemaining(null);
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -140,6 +162,16 @@ const App: React.FC = () => {
   };
 
   const handleBack = async () => {
+    if (step === 'AGENT_CODE_ENTRY') {
+      setStep('USER_TYPE_SELECTION');
+    }
+    if (step === 'CODE_ENTRY') {
+      if (state.userType === 'AGENT') {
+        setStep('AGENT_CODE_ENTRY');
+      } else {
+        setStep('USER_TYPE_SELECTION');
+      }
+    }
     if (step === 'SEAT_SELECTION') {
       setStep('CODE_ENTRY');
       // Clear timer when going back to code entry
@@ -199,14 +231,14 @@ const App: React.FC = () => {
       {/* Dynamic Header based on Step */}
       <header className={`px-4 pt-6 pb-4 bg-white sticky top-0 z-50 ${step === 'CONFIRMATION' ? 'hidden' : ''}`}>
         <div className="flex items-center justify-between mb-2">
-          <button onClick={handleBack} className={`p-1 rounded-full transition ${step === 'CODE_ENTRY' ? 'opacity-0 pointer-events-none' : 'hover:bg-slate-50'}`}>
+          <button onClick={handleBack} className={`p-1 rounded-full transition ${step === 'USER_TYPE_SELECTION' ? 'opacity-0 pointer-events-none' : 'hover:bg-slate-50'}`}>
             <ChevronLeft className="w-6 h-6 text-slate-800" />
           </button>
           
           <div className="w-6" /> {/* Spacer */}
         </div>
         {/* Countdown Timer */}
-        {timeRemaining !== null && step !== 'CODE_ENTRY' && (
+        {timeRemaining !== null && step !== 'USER_TYPE_SELECTION' && step !== 'AGENT_CODE_ENTRY' && step !== 'CODE_ENTRY' && (
           <div className="mt-3 flex items-center justify-center gap-2 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl py-2 px-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -223,6 +255,15 @@ const App: React.FC = () => {
 
       {/* Content Area */}
       <main className="flex-1 overflow-y-auto bg-white">
+        {step === 'USER_TYPE_SELECTION' && (
+          <UserTypeSelection 
+            onSelectUserType={handleUserTypeSelect}
+            onViewMyTicket={() => setIsTicketModalOpen(true)}
+          />
+        )}
+        {step === 'AGENT_CODE_ENTRY' && (
+          <AgentCodeEntry onSubmit={handleAgentInfoSubmit} />
+        )}
         {step === 'CODE_ENTRY' && <CodeEntry onSubmit={handleCodesSubmit} />}
         {step === 'SEAT_SELECTION' && state.selectedTier && (
           <SeatSelection 
@@ -248,6 +289,12 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Ticket Retrieval Modal */}
+      <TicketRetrievalModal 
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
+      />
 
       {/* Dialog */}
       <Dialog
