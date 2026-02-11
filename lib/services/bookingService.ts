@@ -16,6 +16,11 @@ export interface BookingData {
     firstName: string;
     lastName: string;
   }>;
+  userType?: 'SELF' | 'AGENT' | null;
+  agentInfo?: {
+    agentCode: string;
+    agentName: string;
+  } | null;
 }
 
 export interface BookingResult {
@@ -47,6 +52,9 @@ export const bookingService = {
           email: bookingData.email,
           phone: bookingData.phone,
           status: 'confirmed',
+          user_type: bookingData.userType || null,
+          agent_code: bookingData.agentInfo?.agentCode || null,
+          agent_name: bookingData.agentInfo?.agentName || null,
         })
         .select()
         .single();

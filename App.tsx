@@ -101,6 +101,8 @@ const App: React.FC = () => {
         firstName: a.firstName,
         lastName: a.lastName,
       })),
+      userType: state.userType,
+      agentInfo: state.agentInfo,
     });
 
     if (result.success && result.bookingId) {

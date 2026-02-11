@@ -117,8 +117,8 @@ const AdminLogin: React.FC<Props> = ({ onLoginSuccess }) => {
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-slate-50 rounded-[16px]">
             <p className="text-xs font-bold text-slate-500 mb-2">Demo Credentials:</p>
-            <p className="text-xs text-slate-600">Username: <span className="font-mono font-bold">staff_main</span></p>
-            <p className="text-xs text-slate-600">Password: <span className="font-mono font-bold">admin123</span></p>
+            <p className="text-xs text-slate-600">Username: <span className="font-mono font-bold">staff</span></p>
+            <p className="text-xs text-slate-600">Password: <span className="font-mono font-bold">123456</span></p>
           </div>
         </div>
       </div>
