@@ -60,7 +60,7 @@ const StaffDashboard: React.FC<Props> = ({ user, onLogout }) => {
                 <CheckCircle2 className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-black text-slate-900">AIA LIVE IN CONCERT</h1>
+                <h1 className="text-xl font-black text-slate-900">88th Year Concert</h1>
                 <p className="text-sm font-medium text-slate-500">Staff Dashboard</p>
               </div>
             </div>
