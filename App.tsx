@@ -233,7 +233,7 @@ const App: React.FC = () => {
       {/* Dynamic Header based on Step */}
       <header className={`px-4 pt-6 pb-4 bg-white sticky top-0 z-50 ${step === 'CONFIRMATION' ? 'hidden' : ''}`}>
         <div className="flex items-center justify-between mb-2">
-          <button onClick={handleBack} className={`p-1 rounded-full transition ${step === 'USER_TYPE_SELECTION' ? 'opacity-0 pointer-events-none' : 'hover:bg-slate-50'}`}>
+          <button onClick={handleBack} className={`p-1 rounded-full transition ${step === 'CODE_ENTRY' || step === 'SEAT_SELECTION' ? 'opacity-0 pointer-events-none' : 'hover:bg-slate-50'}`}>
             <ChevronLeft className="w-6 h-6 text-slate-800" />
           </button>
           

@@ -11,15 +11,44 @@ export interface SeatWithZone extends Seat {
 export const seatService = {
   async getAvailableSeats(tierId: string): Promise<SeatWithZone[]> {
     try {
-      const { data, error } = await supabase
-        .from('seats')
-        .select('*, zones(*)')
-        .eq('tier_id', tierId)
-        .order('row')
-        .order('number');
+      console.log('🔍 Fetching seats for tier:', tierId);
 
-      if (error) throw error;
-      return (data as SeatWithZone[]) || [];
+      // Fetch all seats using pagination to bypass 1000 row limit
+      let allSeats: SeatWithZone[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error, count } = await supabase
+          .from('seats')
+          .select('*, zones(*)', { count: 'exact' })
+          .eq('tier_id', tierId)
+          .order('row')
+          .order('number')
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allSeats = [...allSeats, ...(data as SeatWithZone[])];
+          from += pageSize;
+          
+          // Check if we've fetched all seats
+          if (count && allSeats.length >= count) {
+            hasMore = false;
+          } else if (data.length < pageSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+
+        console.log(`📊 Fetched ${allSeats.length} seats so far...`);
+      }
+
+      console.log('✅ Total seats fetched:', allSeats.length);
+      return allSeats;
     } catch (error) {
       console.error('Failed to fetch seats:', error);
       return [];
@@ -30,15 +59,44 @@ export const seatService = {
     try {
       if (zoneIds.length === 0) return [];
 
-      const { data, error } = await supabase
-        .from('seats')
-        .select('*, zones(*)')
-        .in('zone_id', zoneIds)
-        .order('row')
-        .order('number');
+      console.log('🔍 Fetching seats for zones:', zoneIds);
 
-      if (error) throw error;
-      return (data as SeatWithZone[]) || [];
+      // Fetch all seats using pagination to bypass 1000 row limit
+      let allSeats: SeatWithZone[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error, count } = await supabase
+          .from('seats')
+          .select('*, zones(*)', { count: 'exact' })
+          .in('zone_id', zoneIds)
+          .order('row')
+          .order('number')
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allSeats = [...allSeats, ...(data as SeatWithZone[])];
+          from += pageSize;
+          
+          // Check if we've fetched all seats
+          if (count && allSeats.length >= count) {
+            hasMore = false;
+          } else if (data.length < pageSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+
+        console.log(`📊 Fetched ${allSeats.length} seats so far...`);
+      }
+
+      console.log('✅ Total seats fetched:', allSeats.length);
+      return allSeats;
     } catch (error) {
       console.error('Failed to fetch seats by zones:', error);
       return [];
@@ -77,36 +135,23 @@ export const seatService = {
 
   async getZonesByTier(tierId: string): Promise<Zone[]> {
     try {
-      // Define tier access rules
-      const tierAccessRules: { [key: string]: string[] } = {
-        'PT': ['ZONE A1', 'ZONE A2'], // PLATINUM
-        'GD': ['ZONE B1', 'ZONE B2', 'ZONE B3'], // GOLD
-        'SV': ['ZONE D1', 'ZONE D2'], // SILVER
-        'CL': ['ZONE C1', 'ZONE C2'], // CLASSIC
-        'AG': ['ZONE A1', 'ZONE A2', 'ZONE B1', 'ZONE B2', 'ZONE B3'], // AGENCY
-        'PR': ['ZONE B1', 'ZONE B2', 'ZONE B3'], // PRESTIGE
-        'OT': ['ZONE B1', 'ZONE B2', 'ZONE B3'], // OTHER
-        'VP': ['ZONE VIP'], // VIP
-      };
-
-      const allowedZoneNames = tierAccessRules[tierId] || [];
-
-      if (allowedZoneNames.length === 0) {
-        // Fallback: if tier not in rules, get zones by tier_id (original behavior)
+      // PLATINUM and GOLD can select ANY zone
+      if (tierId === 'PT' || tierId === 'GD') {
         const { data, error } = await supabase
           .from('zones')
           .select('*')
-          .eq('tier_id', tierId);
+          .order('code');
 
         if (error) throw error;
         return data || [];
       }
 
-      // Get zones by allowed zone names
+      // Other tiers can only select zones from their tier
       const { data, error } = await supabase
         .from('zones')
         .select('*')
-        .in('name', allowedZoneNames);
+        .eq('tier_id', tierId)
+        .order('code');
 
       if (error) throw error;
       return data || [];

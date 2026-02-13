@@ -3,7 +3,7 @@ import { Search, ArrowRight, AlertCircle, CheckCircle2, Loader2, RefreshCw } fro
 import { AdminUser } from '../../types/admin';
 import { BookingInfo, SeatInfo } from '../../types/seat-swap';
 import { seatSwapService } from '../../lib/services/seatSwapService';
-import SeatSwapZoneMap from './SeatSwapZoneMap';
+import SeatSwapSeatMap from './SeatSwapSeatMap';
 import SwapConfirmationDialog from './SwapConfirmationDialog';
 import Dialog from '../Dialog';
 import { useDialog } from '../../lib/hooks/useDialog';
@@ -248,7 +248,7 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
             </div>
 
             {/* Seat Selection */}
-            <SeatSwapZoneMap
+            <SeatSwapSeatMap
               currentSeatId={bookingInfo.current_seat.seat_id}
               currentSeatInfo={bookingInfo.current_seat}
               onSeatSelect={handleSeatSelect}

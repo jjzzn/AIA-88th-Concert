@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Tier, Seat, Zone } from '../types';
-import { Star, ChevronRight, Info, MapPin, LayoutGrid, Users, ArrowLeft, Loader2 } from 'lucide-react';
+import { Star, ChevronRight, Info, MapPin, LayoutGrid, Users, ArrowLeft, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSeats } from '../lib/hooks';
 import { seatService } from '../lib/services';
 import { seatLockService, SeatAvailability } from '../lib/services/seatLockService';
@@ -18,6 +18,11 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
+  const [expandedLevels, setExpandedLevels] = useState<{ level1: boolean; level2: boolean; level3: boolean }>({
+    level1: true,
+    level2: true,
+    level3: true
+  });
   const [seatAvailability, setSeatAvailability] = useState<Record<string, SeatAvailability>>({});
   const [error, setError] = useState<string | null>(null);
   
@@ -37,6 +42,18 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
   const availableZones = useMemo(() => {
     return zones;
   }, [zones]);
+
+  // Group zones by level
+  const groupedZones = useMemo(() => {
+    const level1Codes = ['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'VL', 'VR', 'FF', 'HH'];
+    const level2Codes = ['SB', 'SC', 'SD', 'SE', 'SF', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN'];
+    
+    return {
+      level1: availableZones.filter(z => level1Codes.includes(z.code)),
+      level2: availableZones.filter(z => level2Codes.includes(z.code)),
+      level3: availableZones.filter(z => z.code.startsWith('L') && z.code.length === 2)
+    };
+  }, [availableZones]);
 
   const zoneSeats = useMemo(() => {
     if (!selectedZone) return [];
@@ -222,44 +239,156 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
 
           <ArenaMap />
 
-          <div className="grid grid-cols-1 gap-4 pb-8">
-            {availableZones.map(zone => {
-              const bookedInZone = allSeats.filter(s => s.zone_id === zone.id && s.is_booked).length;
-              const remaining = zone.capacity - bookedInZone;
-
-              return (
+          <div className="space-y-6 pb-8">
+            {/* Level 1 - Floor */}
+            {groupedZones.level1.length > 0 && (
+              <div>
                 <button
-                  key={zone.id}
-                  onClick={() => setSelectedZone(zone)}
-                  className="relative overflow-hidden group text-left bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm hover:shadow-xl hover:border-red-100 transition-all active:scale-[0.98]"
+                  onClick={() => setExpandedLevels(prev => ({ ...prev, level1: !prev.level1 }))}
+                  className="w-full flex items-center justify-between gap-3 mb-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
                 >
-                  <div className="flex justify-between items-start relative z-10">
-                    <div>
-                      <h3 className="text-xl font-black text-slate-900 group-hover:text-[#E4002B] transition-colors">{zone.name}</h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                          <Users className="w-3 h-3" /> {remaining} ที่นั่งว่าง
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-50 text-slate-500 font-bold border border-slate-100">
-                          {tier.name}
-                        </span>
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-md">
+                      <span className="text-white text-xs font-black">1</span>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-red-50 transition-colors">
-                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-[#E4002B]" />
+                    <div className="text-left">
+                      <h3 className="text-sm font-black text-slate-900">Level 1 - Floor</h3>
+                      <p className="text-[10px] text-slate-400 font-medium">{groupedZones.level1.length} zones</p>
                     </div>
                   </div>
-
-                  {/* Progress Bar */}
-                  <div className="mt-6 h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-[#E4002B] transition-all duration-1000"
-                      style={{ width: `${100 - (remaining / zone.capacity * 100)}%` }}
-                    />
-                  </div>
+                  {expandedLevels.level1 ? (
+                    <ChevronUp className="w-5 h-5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                  )}
                 </button>
-              );
-            })}
+                {expandedLevels.level1 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {groupedZones.level1.map(zone => {
+                    const bookedInZone = allSeats.filter(s => s.zone_id === zone.id && s.is_booked).length;
+                    const remaining = zone.capacity - bookedInZone;
+                    return (
+                      <button
+                        key={zone.id}
+                        onClick={() => setSelectedZone(zone)}
+                        className="relative overflow-hidden group text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all active:scale-[0.98]"
+                      >
+                        <h3 className="text-base font-black text-slate-900 group-hover:text-orange-600 transition-colors mb-1">{zone.name}</h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                            <Users className="w-3 h-3" /> {remaining}
+                          </span>
+                        </div>
+                        <div className="h-1 w-full bg-slate-50 rounded-full overflow-hidden">
+                          <div className="h-full bg-orange-500 transition-all duration-1000" style={{ width: `${100 - (remaining / zone.capacity * 100)}%` }} />
+                        </div>
+                      </button>
+                    );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Level 2 - Middle */}
+            {groupedZones.level2.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setExpandedLevels(prev => ({ ...prev, level2: !prev.level2 }))}
+                  className="w-full flex items-center justify-between gap-3 mb-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-md">
+                      <span className="text-white text-xs font-black">2</span>
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-sm font-black text-slate-900">Level 2 - Middle</h3>
+                      <p className="text-[10px] text-slate-400 font-medium">{groupedZones.level2.length} zones</p>
+                    </div>
+                  </div>
+                  {expandedLevels.level2 ? (
+                    <ChevronUp className="w-5 h-5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                  )}
+                </button>
+                {expandedLevels.level2 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {groupedZones.level2.map(zone => {
+                    const bookedInZone = allSeats.filter(s => s.zone_id === zone.id && s.is_booked).length;
+                    const remaining = zone.capacity - bookedInZone;
+                    return (
+                      <button
+                        key={zone.id}
+                        onClick={() => setSelectedZone(zone)}
+                        className="relative overflow-hidden group text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-purple-200 transition-all active:scale-[0.98]"
+                      >
+                        <h3 className="text-base font-black text-slate-900 group-hover:text-purple-600 transition-colors mb-1">{zone.name}</h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                            <Users className="w-3 h-3" /> {remaining}
+                          </span>
+                        </div>
+                        <div className="h-1 w-full bg-slate-50 rounded-full overflow-hidden">
+                          <div className="h-full bg-purple-500 transition-all duration-1000" style={{ width: `${100 - (remaining / zone.capacity * 100)}%` }} />
+                        </div>
+                      </button>
+                    );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Level 3 - Upper */}
+            {groupedZones.level3.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setExpandedLevels(prev => ({ ...prev, level3: !prev.level3 }))}
+                  className="w-full flex items-center justify-between gap-3 mb-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-md">
+                      <span className="text-white text-xs font-black">3</span>
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-sm font-black text-slate-900">Level 3 - Upper</h3>
+                      <p className="text-[10px] text-slate-400 font-medium">{groupedZones.level3.length} zones</p>
+                    </div>
+                  </div>
+                  {expandedLevels.level3 ? (
+                    <ChevronUp className="w-5 h-5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                  )}
+                </button>
+                {expandedLevels.level3 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {groupedZones.level3.map(zone => {
+                    const bookedInZone = allSeats.filter(s => s.zone_id === zone.id && s.is_booked).length;
+                    const remaining = zone.capacity - bookedInZone;
+                    return (
+                      <button
+                        key={zone.id}
+                        onClick={() => setSelectedZone(zone)}
+                        className="relative overflow-hidden group text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all active:scale-[0.98]"
+                      >
+                        <h3 className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors mb-1">{zone.name}</h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                            <Users className="w-3 h-3" /> {remaining}
+                          </span>
+                        </div>
+                        <div className="h-1 w-full bg-slate-50 rounded-full overflow-hidden">
+                          <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${100 - (remaining / zone.capacity * 100)}%` }} />
+                        </div>
+                      </button>
+                    );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -299,8 +428,8 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
       </div>
 
       {/* Seat Map */}
-      <div className="flex-1 overflow-x-auto overflow-y-visible seat-map-container px-6 mb-8 py-2 scroll-smooth">
-        <div className="min-w-fit flex flex-col items-start gap-5">
+      <div className="flex-1 overflow-x-auto overflow-y-auto seat-map-container px-6 mb-8 py-2 scroll-smooth max-h-[60vh]">
+        <div className="min-w-fit flex flex-col items-start gap-5 pb-4">
           {Object.keys(rows).map((rowName) => (
             <div key={rowName} className="flex items-center gap-5">
               <span className="w-4 text-[11px] font-black text-slate-400">{rowName}</span>

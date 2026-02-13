@@ -112,45 +112,67 @@ export const seatSwapService = {
    */
   async getAvailableSeats(currentSeatId: string, tierId?: string): Promise<AvailableSeatsResponse> {
     try {
-      let query = supabase
-        .from('seats')
-        .select(`
-          id,
-          row,
-          number,
-          zone_id,
-          tier_id,
-          is_booked,
-          zones (
-            id,
-            name
-          ),
-          tiers (
-            id,
-            name,
-            color,
-            price
-          )
-        `)
-        .eq('is_booked', false)
-        .neq('id', currentSeatId)
-        .order('tier_id')
-        .order('zone_id')
-        .order('row')
-        .order('number');
+      // Fetch all available seats using pagination
+      let allSeats: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      let hasMore = true;
 
-      // Filter by tier if specified
-      if (tierId) {
-        query = query.eq('tier_id', tierId);
+      while (hasMore) {
+        let query = supabase
+          .from('seats')
+          .select(`
+            id,
+            row,
+            number,
+            zone_id,
+            tier_id,
+            is_booked,
+            zones (
+              id,
+              name
+            ),
+            tiers (
+              id,
+              name,
+              color,
+              price
+            )
+          `, { count: 'exact' })
+          .eq('is_booked', false)
+          .neq('id', currentSeatId)
+          .order('tier_id')
+          .order('zone_id')
+          .order('row')
+          .order('number')
+          .range(from, from + pageSize - 1);
+
+        // Filter by tier if specified
+        if (tierId) {
+          query = query.eq('tier_id', tierId);
+        }
+
+        const { data: seats, error, count } = await query;
+
+        if (error) {
+          throw error;
+        }
+
+        if (seats && seats.length > 0) {
+          allSeats = [...allSeats, ...seats];
+          from += pageSize;
+          
+          if (count && allSeats.length >= count) {
+            hasMore = false;
+          } else if (seats.length < pageSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
       }
 
-      const { data: seats, error } = await query;
-
-      if (error) {
-        throw error;
-      }
-
-      const seatInfos: SeatInfo[] = (seats || []).map((seat: any) => ({
+      const seatInfos: SeatInfo[] = allSeats.map((seat: any) => ({
         seat_id: seat.id,
         row: seat.row,
         number: seat.number,
@@ -209,36 +231,58 @@ export const seatSwapService = {
    */
   async getSeatMap(currentSeatId?: string): Promise<SeatMapData> {
     try {
-      const { data: seats, error } = await supabase
-        .from('seats')
-        .select(`
-          id,
-          row,
-          number,
-          zone_id,
-          tier_id,
-          is_booked,
-          zones (
-            id,
-            name,
-            tier_id
-          ),
-          tiers (
-            id,
-            name,
-            color
-          )
-        `)
-        .order('zone_id')
-        .order('row')
-        .order('number');
+      // Fetch all seats using pagination
+      let allSeats: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      let hasMore = true;
 
-      if (error) throw error;
+      while (hasMore) {
+        const { data: seats, error, count } = await supabase
+          .from('seats')
+          .select(`
+            id,
+            row,
+            number,
+            zone_id,
+            tier_id,
+            is_booked,
+            zones (
+              id,
+              name,
+              tier_id
+            ),
+            tiers (
+              id,
+              name,
+              color
+            )
+          `, { count: 'exact' })
+          .order('zone_id')
+          .order('row')
+          .order('number')
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+
+        if (seats && seats.length > 0) {
+          allSeats = [...allSeats, ...seats];
+          from += pageSize;
+          
+          if (count && allSeats.length >= count) {
+            hasMore = false;
+          } else if (seats.length < pageSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
 
       // Group seats by zone
       const zoneMap = new Map<string, any>();
 
-      (seats || []).forEach((seat: any) => {
+      allSeats.forEach((seat: any) => {
         const zoneId = seat.zone_id;
         if (!zoneMap.has(zoneId)) {
           zoneMap.set(zoneId, {

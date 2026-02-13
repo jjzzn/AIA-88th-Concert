@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Loader2, ArrowLeft, CheckCircle2, MapPin } from 'lucide-react';
+import { Loader2, ArrowLeft, CheckCircle2, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import { SeatInfo } from '../../types/seat-swap';
 import { seatSwapService } from '../../lib/services/seatSwapService';
 
@@ -14,6 +14,11 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
   const [loading, setLoading] = useState(true);
   const [allSeats, setAllSeats] = useState<SeatInfo[]>([]);
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  const [expandedLevels, setExpandedLevels] = useState<{ level1: boolean; level2: boolean; level3: boolean }>({
+    level1: true,
+    level2: true,
+    level3: true
+  });
 
   useEffect(() => {
     loadSeats();
@@ -50,6 +55,22 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
 
     return Array.from(zoneMap.values());
   }, [allSeats]);
+
+  // Group zones by level
+  const groupedZones = useMemo(() => {
+    const level1Codes = ['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'VL', 'VR', 'FF', 'HH'];
+    const level2Codes = ['SB', 'SC', 'SD', 'SE', 'SF', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN'];
+    // Level 3 zones are single letters: ZONE B, ZONE C, etc.
+    const level3Pattern = /^ZONE [B-T]$/;
+    
+    const grouped = {
+      level1: zones.filter(z => level1Codes.some(code => z.zone_name.includes(code))),
+      level2: zones.filter(z => level2Codes.some(code => z.zone_name.includes(code))),
+      level3: zones.filter(z => level3Pattern.test(z.zone_name))
+    };
+    
+    return grouped;
+  }, [zones]);
 
   // Group seats by row in selected zone
   const rowSeats = useMemo(() => {
@@ -130,136 +151,127 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
           </div>
         ) : (
           <>
-            {/* Arena Map */}
-            <div className="w-full bg-slate-50 rounded-[32px] p-6 mb-6 border border-slate-100">
-              <div className="flex flex-col items-center">
-                {/* Stage */}
-                <div className="w-[240px] py-2.5 bg-slate-900 rounded-full mb-6 flex items-center justify-center">
-                  <span className="text-[9px] font-black text-white uppercase tracking-[0.6em]">STAGE</span>
-                </div>
-                
-                {/* Platinum Rows (A1, A2) */}
-                <div className="flex gap-3 mb-4 justify-center">
-                  {['ZONE A1', 'ZONE A2'].map(zoneName => {
-                    const zone = zones.find(z => z.zone_name === zoneName);
-                    if (!zone) {
-                      return (
-                        <div
-                          key={zoneName}
-                          className="w-16 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold bg-slate-200 text-slate-400"
-                        >
-                          {zoneName.replace('ZONE ', '')}
-                        </div>
-                      );
-                    }
-                    return (
-                      <button
-                        key={zone.zone_id}
-                        onClick={() => setSelectedZone(zone.zone_id)}
-                        className={`w-16 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${
-                          zone.seats.length > 0 
-                            ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] hover:scale-105 cursor-pointer' 
-                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                        }`}
-                        disabled={zone.seats.length === 0}
-                      >
-                        {zone.zone_name.replace('ZONE ', '')}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Gold Rows (B1, B2, B3) */}
-                <div className="flex gap-3 mb-4 justify-center">
-                  {['ZONE B1', 'ZONE B2', 'ZONE B3'].map(zoneName => {
-                    const zone = zones.find(z => z.zone_name === zoneName);
-                    if (!zone) {
-                      // Show placeholder if zone doesn't exist in data
-                      return (
-                        <div
-                          key={zoneName}
-                          className="w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold bg-slate-200 text-slate-400"
-                        >
-                          {zoneName.replace('ZONE ', '')}
-                        </div>
-                      );
-                    }
-                    return (
-                      <button
-                        key={zone.zone_id}
-                        onClick={() => setSelectedZone(zone.zone_id)}
-                        className={`w-14 h-10 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all ${
-                          zone.seats.length > 0 
-                            ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] hover:scale-105 cursor-pointer' 
-                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                        }`}
-                        disabled={zone.seats.length === 0}
-                      >
-                        {zone.zone_name.replace('ZONE ', '')}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Silver & Classic (C1, D1, D2, C2) */}
-                <div className="flex gap-2 justify-center">
-                  {['ZONE C1', 'ZONE D1', 'ZONE D2', 'ZONE C2'].map(zoneName => {
-                    const zone = zones.find(z => z.zone_name === zoneName);
-                    if (!zone) return null;
-                    return (
-                      <button
-                        key={zone.zone_id}
-                        onClick={() => setSelectedZone(zone.zone_id)}
-                        className={`w-11 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${
-                          zone.seats.length > 0 
-                            ? 'bg-[#E4002B] text-white shadow-[0_4px_12px_rgba(228,0,43,0.4)] hover:scale-105 cursor-pointer' 
-                            : 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                        }`}
-                        disabled={zone.seats.length === 0}
-                      >
-                        {zone.zone_name.replace('ZONE ', '')}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Zone List */}
-            <div className="space-y-3">
-              {zones.map(zone => (
-                <button
-                  key={zone.zone_id}
-                  onClick={() => setSelectedZone(zone.zone_id)}
-                  disabled={zone.seats.length === 0}
-                  className="w-full text-left bg-white border-2 border-slate-200 hover:border-blue-400 rounded-[20px] p-5 transition-all hover:shadow-lg active:scale-[0.98] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-200"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
-                        {zone.zone_name}
-                      </h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs font-bold text-slate-500">
-                          {zone.seats.length} ที่นั่งว่าง
-                        </span>
-                        <span 
-                          className="text-xs font-bold uppercase px-2 py-0.5 rounded-full"
-                          style={{ 
-                            backgroundColor: zone.tier_color + '20',
-                            color: zone.tier_color 
-                          }}
-                        >
-                          {zone.tier_name}
-                        </span>
+            {/* Zone List - Grouped by Level */}
+            <div className="space-y-6">
+              {/* Level 1 */}
+              {groupedZones.level1.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setExpandedLevels(prev => ({ ...prev, level1: !prev.level1 }))}
+                    className="w-full flex items-center justify-between gap-3 mb-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-md">
+                        <span className="text-white text-xs font-black">1</span>
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-sm font-black text-slate-900">Level 1 - Floor</h3>
+                        <p className="text-[10px] text-slate-400 font-medium">{groupedZones.level1.length} zones</p>
                       </div>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
-                      <CheckCircle2 className="w-5 h-5 text-slate-400 group-hover:text-blue-600" />
+                    {expandedLevels.level1 ? (
+                      <ChevronUp className="w-5 h-5 text-slate-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                    )}
+                  </button>
+                  {expandedLevels.level1 && (
+                    <div className="grid grid-cols-2 gap-3">
+                    {groupedZones.level1.map(zone => (
+                      <button
+                        key={zone.zone_id}
+                        onClick={() => setSelectedZone(zone.zone_id)}
+                        disabled={zone.seats.length === 0}
+                        className="text-left bg-white border-2 border-slate-200 hover:border-orange-400 rounded-2xl p-4 transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <h3 className="text-base font-black text-slate-900 mb-1">{zone.zone_name}</h3>
+                        <p className="text-xs text-slate-500">{zone.seats.length} ที่ว่าง</p>
+                      </button>
+                    ))}
                     </div>
-                  </div>
-                </button>
-              ))}
+                  )}
+                </div>
+              )}
+
+              {/* Level 2 */}
+              {groupedZones.level2.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setExpandedLevels(prev => ({ ...prev, level2: !prev.level2 }))}
+                    className="w-full flex items-center justify-between gap-3 mb-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-md">
+                        <span className="text-white text-xs font-black">2</span>
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-sm font-black text-slate-900">Level 2 - Middle</h3>
+                        <p className="text-[10px] text-slate-400 font-medium">{groupedZones.level2.length} zones</p>
+                      </div>
+                    </div>
+                    {expandedLevels.level2 ? (
+                      <ChevronUp className="w-5 h-5 text-slate-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                    )}
+                  </button>
+                  {expandedLevels.level2 && (
+                    <div className="grid grid-cols-2 gap-3">
+                    {groupedZones.level2.map(zone => (
+                      <button
+                        key={zone.zone_id}
+                        onClick={() => setSelectedZone(zone.zone_id)}
+                        disabled={zone.seats.length === 0}
+                        className="text-left bg-white border-2 border-slate-200 hover:border-purple-400 rounded-2xl p-4 transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <h3 className="text-base font-black text-slate-900 mb-1">{zone.zone_name}</h3>
+                        <p className="text-xs text-slate-500">{zone.seats.length} ที่ว่าง</p>
+                      </button>
+                    ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Level 3 */}
+              {groupedZones.level3.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setExpandedLevels(prev => ({ ...prev, level3: !prev.level3 }))}
+                    className="w-full flex items-center justify-between gap-3 mb-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-md">
+                        <span className="text-white text-xs font-black">3</span>
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-sm font-black text-slate-900">Level 3 - Upper</h3>
+                        <p className="text-[10px] text-slate-400 font-medium">{groupedZones.level3.length} zones</p>
+                      </div>
+                    </div>
+                    {expandedLevels.level3 ? (
+                      <ChevronUp className="w-5 h-5 text-slate-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                    )}
+                  </button>
+                  {expandedLevels.level3 && (
+                    <div className="grid grid-cols-2 gap-3">
+                    {groupedZones.level3.map(zone => (
+                      <button
+                        key={zone.zone_id}
+                        onClick={() => setSelectedZone(zone.zone_id)}
+                        disabled={zone.seats.length === 0}
+                        className="text-left bg-white border-2 border-slate-200 hover:border-blue-400 rounded-2xl p-4 transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <h3 className="text-base font-black text-slate-900 mb-1">{zone.zone_name}</h3>
+                        <p className="text-xs text-slate-500">{zone.seats.length} ที่ว่าง</p>
+                      </button>
+                    ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </>
         )}
