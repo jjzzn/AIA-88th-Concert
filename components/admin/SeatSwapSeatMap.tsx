@@ -80,10 +80,24 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
     if (!zone) return {};
 
     const rows: Record<string, SeatInfo[]> = {};
+    
+    // Add all available seats
     zone.seats.forEach(seat => {
       if (!rows[seat.row]) rows[seat.row] = [];
       rows[seat.row].push(seat);
     });
+    
+    // Add current seat if it's in this zone and not already in the list
+    if (currentSeatInfo.zone_id === selectedZone) {
+      const currentRow = currentSeatInfo.row;
+      if (!rows[currentRow]) rows[currentRow] = [];
+      
+      // Check if current seat is already in the list
+      const seatExists = rows[currentRow].some(s => s.seat_id === currentSeatId);
+      if (!seatExists) {
+        rows[currentRow].push(currentSeatInfo);
+      }
+    }
 
     // Sort seats in each row
     Object.keys(rows).forEach(row => {
@@ -91,7 +105,7 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
     });
 
     return rows;
-  }, [selectedZone, zones]);
+  }, [selectedZone, zones, currentSeatInfo, currentSeatId]);
 
   const selectedZoneInfo = zones.find(z => z.zone_id === selectedZone);
 
@@ -300,39 +314,46 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
       </div>
 
       {/* Stage */}
-      <div className="mb-8 flex justify-center">
-        <div className="w-[280px] py-3 bg-slate-900 rounded-full flex items-center justify-center">
-          <span className="text-xs font-black text-white uppercase tracking-[0.4em]">STAGE</span>
+      <div className="mb-6 flex justify-center">
+        <div className="w-[200px] py-2 bg-slate-900 rounded-full flex items-center justify-center">
+          <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">STAGE</span>
         </div>
       </div>
 
       {/* Seats Grid */}
-      <div className="space-y-4 max-h-[500px] overflow-y-auto">
+      <div className="space-y-3 max-h-[60vh] overflow-y-auto overflow-x-auto pb-4">
         {Object.entries(rowSeats)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([row, seats]) => (
-            <div key={row} className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                  <span className="text-sm font-black text-white">{row}</span>
-                </div>
-                <div className="h-px flex-1 bg-slate-200" />
+            <div key={row} className="flex items-center gap-3 min-w-fit">
+              <span className="w-4 text-[11px] font-black text-slate-400">{row}</span>
+              <div className="flex gap-2">
+                {seats.map(seat => {
+                  const isCurrentSeat = seat.seat_id === currentSeatId;
+                  const seatLabel = `${seat.row}${seat.number.toString().padStart(2, '0')}`;
+                  
+                  return (
+                    <button
+                      key={seat.seat_id}
+                      onClick={() => onSeatSelect(seat)}
+                      className={`
+                        w-9 h-9 rounded-xl transition-all duration-300 transform flex items-center justify-center
+                        text-[8px] font-black tracking-tighter
+                        ${
+                          isCurrentSeat
+                            ? 'bg-amber-400 text-amber-900 ring-4 ring-amber-200 scale-110 shadow-lg z-10 cursor-not-allowed'
+                            : 'bg-slate-900 text-slate-400 hover:bg-slate-700 shadow-sm hover:scale-105'
+                        }
+                      `}
+                      disabled={isCurrentSeat}
+                      title={isCurrentSeat ? 'ที่นั่งปัจจุบัน' : `Row ${seat.row}, Seat ${seat.number}`}
+                    >
+                      {seatLabel}
+                    </button>
+                  );
+                })}
               </div>
-              
-              <div className="grid grid-cols-8 gap-2">
-                {seats.map(seat => (
-                  <button
-                    key={seat.seat_id}
-                    onClick={() => onSeatSelect(seat)}
-                    className="aspect-square bg-gradient-to-br from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-2 border-green-200 hover:border-green-400 rounded-[12px] flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 group"
-                    title={`Row ${seat.row}, Seat ${seat.number}`}
-                  >
-                    <span className="text-xs font-bold text-green-700 group-hover:text-green-900">
-                      {seat.number}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <span className="w-4 text-[11px] font-black text-slate-400 text-right">{row}</span>
             </div>
           ))}
       </div>
@@ -342,8 +363,12 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
         <p className="text-xs font-bold text-slate-500 uppercase mb-3">คำอธิบาย</p>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-[8px]" />
-            <span className="text-sm font-medium text-slate-700">ที่นั่งว่าง</span>
+            <div className="w-6 h-6 rounded-lg bg-slate-900" />
+            <span className="text-xs font-medium text-slate-700">ที่นั่งว่าง</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-amber-400 ring-2 ring-amber-200" />
+            <span className="text-xs font-medium text-slate-700">ที่นั่งปัจจุบัน</span>
           </div>
         </div>
       </div>
