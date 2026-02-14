@@ -429,11 +429,25 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
 
       {/* Seat Map */}
       <div className="flex-1 overflow-x-auto overflow-y-auto seat-map-container px-6 mb-8 py-2 scroll-smooth max-h-[60vh]">
-        <div className="min-w-fit flex flex-col items-start gap-5 pb-4">
-          {Object.keys(rows).map((rowName) => (
+        <div className="min-w-fit flex flex-col items-center gap-5 pb-4">
+          {Object.keys(rows).map((rowName) => {
+            const rowSeats = rows[rowName];
+            const seatsPerRow = rowSeats.length;
+            
+            // Determine grid columns based on zone and row
+            let numCols = 8; // default
+            if (selectedZone && (selectedZone.name === 'ZONE A1' || selectedZone.name === 'ZONE A4')) {
+              numCols = 12; // 12 seats per row
+            } else if (selectedZone && (selectedZone.name === 'ZONE A2' || selectedZone.name === 'ZONE A3')) {
+              // Rows AA-AS: 20 seats, Rows AT-AX: 12 seats
+              const rowsWithTwenty = ['AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AP', 'AQ', 'AR', 'AS'];
+              numCols = rowsWithTwenty.includes(rowName) ? 20 : 12;
+            }
+            
+            return (
             <div key={rowName} className="flex items-center gap-5">
               <span className="w-4 text-[11px] font-black text-slate-400">{rowName}</span>
-              <div className="flex gap-3">
+              <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}>
                 {rows[rowName].map(seat => {
                   const isSelected = selectedSeatIds.includes(seat.id);
                   const availability = seatAvailability[seat.id];
@@ -474,7 +488,8 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
               </div>
               <span className="w-4 text-[11px] font-black text-slate-400 text-right">{rowName}</span>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

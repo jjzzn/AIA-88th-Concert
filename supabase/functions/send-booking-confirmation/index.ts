@@ -170,8 +170,12 @@ serve(async (req) => {
                 <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700;">Order Summary</h3>
                 <table style="width: 100%; font-size: 14px;">
                   <tr>
+                    <td style="padding-bottom: 8px; color: #6B7280;">Order ID</td>
+                    <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">${attendees[0]?.qrToken || 'N/A'}</td>
+                  </tr>
+                  <tr>
                     <td style="padding-bottom: 8px; color: #6B7280;">Customer</td>
-                    <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">${booking.email}</td>
+                    <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">${attendees[0]?.firstName || ''} ${attendees[0]?.lastName || ''}</td>
                   </tr>
                   <tr>
                     <td style="color: #6B7280;">Total Tickets</td>

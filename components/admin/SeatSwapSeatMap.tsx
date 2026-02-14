@@ -324,10 +324,21 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
       <div className="space-y-3 max-h-[60vh] overflow-y-auto overflow-x-auto pb-4">
         {Object.entries(rowSeats)
           .sort(([a], [b]) => a.localeCompare(b))
-          .map(([row, seats]) => (
+          .map(([row, seats]) => {
+            // Determine grid columns based on zone and row
+            let numCols = 8; // default
+            if (selectedZoneInfo && (selectedZoneInfo.zone_name === 'ZONE A1' || selectedZoneInfo.zone_name === 'ZONE A4')) {
+              numCols = 12; // 12 seats per row
+            } else if (selectedZoneInfo && (selectedZoneInfo.zone_name === 'ZONE A2' || selectedZoneInfo.zone_name === 'ZONE A3')) {
+              // Rows AA-AS: 20 seats, Rows AT-AX: 12 seats
+              const rowsWithTwenty = ['AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AP', 'AQ', 'AR', 'AS'];
+              numCols = rowsWithTwenty.includes(row) ? 20 : 12;
+            }
+            
+            return (
             <div key={row} className="flex items-center gap-3 min-w-fit">
               <span className="w-4 text-[11px] font-black text-slate-400">{row}</span>
-              <div className="flex gap-2">
+              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}>
                 {seats.map(seat => {
                   const isCurrentSeat = seat.seat_id === currentSeatId;
                   const seatLabel = `${seat.row}${seat.number.toString().padStart(2, '0')}`;
@@ -355,7 +366,8 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
               </div>
               <span className="w-4 text-[11px] font-black text-slate-400 text-right">{row}</span>
             </div>
-          ))}
+            );
+          })}
       </div>
 
       {/* Legend */}
