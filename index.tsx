@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import AdminPage from './pages/admin';
 import SeatSwapPage from './pages/seat-swap';
+import VIPBookingPage from './pages/vip-booking';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -22,6 +23,11 @@ const Router: React.FC = () => {
     window.addEventListener('popstate', handleLocationChange);
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
+
+  // Check if path is /vip-booking
+  if (currentPath === '/vip-booking' || currentPath === '/vip-booking/') {
+    return <VIPBookingPage />;
+  }
 
   // Check if path is /check-in
   if (currentPath === '/check-in' || currentPath === '/check-in/') {

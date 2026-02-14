@@ -162,6 +162,12 @@ export const bookingService = {
 
   async getBookingByPhone(phone: string) {
     try {
+      // Normalize phone number (remove leading 0 if present)
+      const normalizedPhone = phone.startsWith('0') ? phone.substring(1) : phone;
+      const phoneWithZero = phone.startsWith('0') ? phone : `0${phone}`;
+      
+      console.log('Searching for phone:', phone, 'normalized:', normalizedPhone, 'with zero:', phoneWithZero);
+      
       const { data, error } = await supabase
         .from('bookings')
         .select(`
@@ -198,10 +204,15 @@ export const bookingService = {
             )
           )
         `)
-        .eq('phone', phone)
+        .or(`phone.eq.${phone},phone.eq.${normalizedPhone},phone.eq.${phoneWithZero}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Found bookings:', data?.length || 0);
       return data || [];
     } catch (error) {
       console.error('Failed to fetch booking by phone:', error);
