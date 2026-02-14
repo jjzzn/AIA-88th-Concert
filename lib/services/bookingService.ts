@@ -60,7 +60,8 @@ export const bookingService = {
         .single();
 
       if (bookingError || !booking) {
-        return { success: false, error: 'Failed to create booking' };
+        console.error('Booking creation error:', bookingError);
+        return { success: false, error: bookingError?.message || 'Failed to create booking' };
       }
 
       const bookingSeats: BookingSeatInsert[] = bookingData.seats.map(seat => ({
@@ -76,8 +77,9 @@ export const bookingService = {
         .insert(bookingSeats);
 
       if (seatsError) {
+        console.error('Booking seats insert error:', seatsError);
         await supabase.from('bookings').delete().eq('id', booking.id);
-        return { success: false, error: 'Failed to save attendee information' };
+        return { success: false, error: seatsError?.message || 'Failed to save attendee information' };
       }
 
       const reserveSuccess = await seatService.reserveSeats(
@@ -145,7 +147,15 @@ export const bookingService = {
         .select(`
           *,
           booking_seats (
-            *,
+            id,
+            booking_id,
+            seat_id,
+            first_name,
+            last_name,
+            qr_token,
+            checked_in,
+            checked_in_at,
+            created_at,
             seats (*)
           )
         `)
