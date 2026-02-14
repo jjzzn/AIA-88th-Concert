@@ -47,14 +47,8 @@ const VIPRoomSelection: React.FC<Props> = ({ onSelectRoom }) => {
               onClick={() => onSelectRoom(room)}
               className="group bg-white rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-300 border-2 border-slate-100 hover:border-[#E4002B] hover:scale-[1.02] active:scale-100"
             >
-              {/* Room Icon */}
-              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#E4002B] transition-all border border-red-100 group-hover:border-[#E4002B]">
-                <DoorOpen className="w-8 h-8 text-[#E4002B] group-hover:text-white transition-colors" />
-              </div>
-
               {/* Room Info */}
               <div className="text-center mb-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ROOM {room.roomNumber}</p>
                 <h3 className="text-lg font-black text-slate-900 mb-1">{room.name}</h3>
                 <p className="text-sm text-slate-500 font-bold">{room.capacity} ที่นั่ง</p>
               </div>

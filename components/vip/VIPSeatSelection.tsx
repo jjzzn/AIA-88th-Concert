@@ -109,7 +109,7 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
                   </div>
 
                   {/* Seats */}
-                  <div className="flex-1 flex flex-wrap gap-2 justify-center">
+                  <div className="flex-1 flex gap-2 justify-center overflow-x-auto">
                     {rowSeats.sort((a, b) => a.number - b.number).map((seat) => {
                       const isSelected = selectedSeats.has(seat.id);
                       const isBooked = seat.isBooked;
@@ -141,7 +141,7 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
           </div>
 
           {/* Legend */}
-          <div className="bg-slate-50 rounded-2xl p-4 mb-4 border border-slate-100">
+          <div className="bg-slate-50 rounded-2xl p-4 mb-4 mt-8 border border-slate-100">
             <div className="flex justify-center gap-6 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-white border-2 border-slate-200 rounded-lg flex items-center justify-center">
