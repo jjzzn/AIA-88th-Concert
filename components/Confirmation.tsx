@@ -99,7 +99,8 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
             const seat = state.selectedSeats.find(s => s.id === attendee.seatId);
             const row = seat?.row || 'A';
             const num = seat?.number?.toString().padStart(2, '0') || '01';
-            const qrToken = (attendee as any).qrToken || (seat as any)?.qr_token || crypto.randomUUID();
+            // Use qr_token from attendee (populated after booking) or from seat data
+            const qrToken = (attendee as any).qrToken || (seat as any)?.qr_token || '';
             const isCheckedIn = (attendee as any).isCheckedIn || false;
             const checkedInAt = (attendee as any).checkedInAt;
             

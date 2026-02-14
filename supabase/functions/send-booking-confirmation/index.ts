@@ -57,9 +57,13 @@ serve(async (req) => {
           seats (
             row,
             number,
-            tiers (
+            tier_id,
+            zones (
               name,
-              color
+              tiers (
+                name,
+                color
+              )
             )
           )
         )
@@ -77,7 +81,7 @@ serve(async (req) => {
       lastName: bs.last_name,
       seat: `${bs.seats.row}${bs.seats.number.toString().padStart(2, '0')}`,
       qrToken: bs.qr_token,
-      tier: bs.seats.tiers.name,
+      tier: bs.seats.zones?.tiers?.name || 'STANDARD',
     }))
 
     const tierName = attendees[0]?.tier || 'STANDARD'
