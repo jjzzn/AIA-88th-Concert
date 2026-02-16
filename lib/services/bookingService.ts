@@ -179,20 +179,11 @@ export const bookingService = {
       // Normalize phone number - remove all non-digits first
       const digitsOnly = phone.replace(/\D/g, '');
       
-      // Try different formats
-      const phoneVariants = [
-        phone,                                          // Original: 0947064424
-        digitsOnly,                                     // Digits only: 0947064424
-        digitsOnly.startsWith('0') ? digitsOnly.substring(1) : digitsOnly,  // Without 0: 947064424
-        digitsOnly.startsWith('0') ? digitsOnly : `0${digitsOnly}`,         // With 0: 0947064424
-      ];
+      console.log('Searching for phone:', phone, 'digits only:', digitsOnly);
       
-      // Remove duplicates
-      const uniqueVariants = [...new Set(phoneVariants)];
-      
-      console.log('Searching for phone variants:', uniqueVariants);
-      
-      const { data, error } = await supabase
+      // Try multiple search strategies
+      // 1. Exact match with original
+      let { data, error } = await supabase
         .from('bookings')
         .select(`
           *,
@@ -233,8 +224,114 @@ export const bookingService = {
             )
           )
         `)
-        .or(uniqueVariants.map(v => `phone.eq.${v}`).join(','))
+        .eq('phone', digitsOnly)
         .order('created_at', { ascending: false });
+
+      // 2. If not found, try without leading 0
+      if (!data || data.length === 0) {
+        const withoutZero = digitsOnly.startsWith('0') ? digitsOnly.substring(1) : digitsOnly;
+        console.log('Trying without leading 0:', withoutZero);
+        
+        const result = await supabase
+          .from('bookings')
+          .select(`
+            *,
+            booking_seats (
+              id,
+              first_name,
+              last_name,
+              seat_id,
+              qr_token,
+              checked_in,
+              is_cancelled,
+              cancelled_at,
+              cancel_count,
+              swap_count,
+              original_seat_id,
+              seats (
+                id,
+                row,
+                number,
+                tier_id,
+                zone_id,
+                tiers (
+                  id,
+                  name,
+                  level,
+                  price,
+                  color,
+                  description
+                ),
+                zones (
+                  id,
+                  name
+                )
+              ),
+              check_ins (
+                id,
+                checked_in_at
+              )
+            )
+          `)
+          .eq('phone', withoutZero)
+          .order('created_at', { ascending: false });
+        
+        data = result.data;
+        error = result.error;
+      }
+
+      // 3. If still not found, try with leading 0
+      if (!data || data.length === 0) {
+        const withZero = digitsOnly.startsWith('0') ? digitsOnly : `0${digitsOnly}`;
+        console.log('Trying with leading 0:', withZero);
+        
+        const result = await supabase
+          .from('bookings')
+          .select(`
+            *,
+            booking_seats (
+              id,
+              first_name,
+              last_name,
+              seat_id,
+              qr_token,
+              checked_in,
+              is_cancelled,
+              cancelled_at,
+              cancel_count,
+              swap_count,
+              original_seat_id,
+              seats (
+                id,
+                row,
+                number,
+                tier_id,
+                zone_id,
+                tiers (
+                  id,
+                  name,
+                  level,
+                  price,
+                  color,
+                  description
+                ),
+                zones (
+                  id,
+                  name
+                )
+              ),
+              check_ins (
+                id,
+                checked_in_at
+              )
+            )
+          `)
+          .eq('phone', withZero)
+          .order('created_at', { ascending: false });
+        
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) {
         console.error('Supabase error:', error);

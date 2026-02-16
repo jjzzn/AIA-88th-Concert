@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BookingStep, BookingState, Tier, Seat, Attendee, ContactInfo, UserType, AgentInfo } from './types';
 import UserTypeSelection from './components/UserTypeSelection';
 import AgentCodeEntry from './components/AgentCodeEntry';
+import AgentSeatSelection from './components/AgentSeatSelection';
 import CodeEntry from './components/CodeEntry';
 import SeatSelection from './components/SeatSelection';
 import DetailsForm from './components/DetailsForm';
@@ -10,7 +11,7 @@ import TicketRetrievalModal from './components/TicketRetrievalModal';
 import Dialog from './components/Dialog';
 import { ChevronLeft } from 'lucide-react';
 import { useBooking } from './lib/hooks';
-import { bookingService } from './lib/services';
+import { bookingService, tierService } from './lib/services';
 import { seatLockService } from './lib/services/seatLockService';
 import { useDialog } from './lib/hooks/useDialog';
 
@@ -39,7 +40,10 @@ const App: React.FC = () => {
 
   const handleAgentInfoSubmit = (agentInfo: AgentInfo) => {
     setState(prev => ({ ...prev, agentInfo }));
-    setStep('CODE_ENTRY');
+    // Agent goes directly to seat selection
+    setStep('SEAT_SELECTION');
+    // Start 5-minute countdown
+    setTimeRemaining(300);
   };
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -277,7 +281,14 @@ const App: React.FC = () => {
           <AgentCodeEntry onSubmit={handleAgentInfoSubmit} />
         )}
         {step === 'CODE_ENTRY' && <CodeEntry onSubmit={handleCodesSubmit} />}
-        {step === 'SEAT_SELECTION' && state.selectedTier && (
+        {step === 'SEAT_SELECTION' && state.userType === 'AGENT' && (
+          <AgentSeatSelection 
+            onSubmit={handleSeatsSubmit} 
+            onBack={handleBack}
+            timeRemaining={timeRemaining}
+          />
+        )}
+        {step === 'SEAT_SELECTION' && state.userType === 'SELF' && state.selectedTier && (
           <SeatSelection 
             tier={state.selectedTier} 
             maxSeats={state.codes.length} 
