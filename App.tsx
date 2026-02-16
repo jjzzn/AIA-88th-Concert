@@ -3,6 +3,7 @@ import { BookingStep, BookingState, Tier, Seat, Attendee, ContactInfo, UserType,
 import UserTypeSelection from './components/UserTypeSelection';
 import AgentCodeEntry from './components/AgentCodeEntry';
 import AgentSeatSelection from './components/AgentSeatSelection';
+import ContactInfoForm from './components/ContactInfoForm';
 import CodeEntry from './components/CodeEntry';
 import SeatSelection from './components/SeatSelection';
 import DetailsForm from './components/DetailsForm';
@@ -34,13 +35,18 @@ const App: React.FC = () => {
     if (userType === 'AGENT') {
       setStep('AGENT_CODE_ENTRY');
     } else {
-      setStep('CODE_ENTRY');
+      setStep('CONTACT_INFO');
     }
   };
 
   const handleAgentInfoSubmit = (agentInfo: AgentInfo) => {
     setState(prev => ({ ...prev, agentInfo }));
-    // Agent goes to code entry
+    // Agent goes to contact info
+    setStep('CONTACT_INFO');
+  };
+
+  const handleContactInfoSubmit = (contact: ContactInfo) => {
+    setState(prev => ({ ...prev, contact }));
     setStep('CODE_ENTRY');
   };
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
@@ -97,11 +103,15 @@ const App: React.FC = () => {
     const result = await createBooking({
       email: contact.email,
       phone: contact.phone,
+      bookerFirstName: state.contact.firstName,
+      bookerLastName: state.contact.lastName,
       codes: state.codes,
       seats: attendees.map(a => ({
         seatId: a.seatId,
         firstName: a.firstName,
         lastName: a.lastName,
+        email: a.email,
+        phone: a.phone,
       })),
       userType: state.userType,
       agentInfo: state.agentInfo,
@@ -278,6 +288,12 @@ const App: React.FC = () => {
         {step === 'AGENT_CODE_ENTRY' && (
           <AgentCodeEntry onSubmit={handleAgentInfoSubmit} />
         )}
+        {step === 'CONTACT_INFO' && (
+          <ContactInfoForm 
+            onSubmit={handleContactInfoSubmit}
+            onBack={handleBack}
+          />
+        )}
         {step === 'CODE_ENTRY' && <CodeEntry onSubmit={handleCodesSubmit} />}
         {step === 'SEAT_SELECTION' && state.userType === 'AGENT' && (
           <AgentSeatSelection 
@@ -301,6 +317,7 @@ const App: React.FC = () => {
               seats={state.selectedSeats} 
               onSubmit={handleDetailsSubmit}
               timeRemaining={timeRemaining}
+              bookerInfo={state.contact}
             />
           </div>
         )}

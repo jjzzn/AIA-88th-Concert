@@ -7,15 +7,32 @@ interface Props {
   seats: Seat[];
   onSubmit: (attendees: Attendee[], contact: ContactInfo) => void;
   timeRemaining?: number | null;
+  bookerInfo?: ContactInfo;
 }
 
-const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining }) => {
+const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining, bookerInfo }) => {
   const [attendees, setAttendees] = useState<Attendee[]>(
     seats.map(s => ({ firstName: '', lastName: '', seatId: s.id, email: '', phone: '' }))
   );
-  const [contact, setContact] = useState<ContactInfo>({ email: '', phone: '' });
+  const [contact, setContact] = useState<ContactInfo>(
+    bookerInfo || { email: '', phone: '', firstName: '', lastName: '' }
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handlePrefillFromBooker = (index: number) => {
+    if (!bookerInfo?.firstName || !bookerInfo?.lastName || !bookerInfo?.phone) return;
+    
+    const newAttendees = [...attendees];
+    newAttendees[index] = {
+      ...newAttendees[index],
+      firstName: bookerInfo.firstName,
+      lastName: bookerInfo.lastName,
+      phone: bookerInfo.phone,
+      email: bookerInfo.email || ''
+    };
+    setAttendees(newAttendees);
+  };
 
   const handleAttendeeChange = (index: number, field: 'firstName' | 'lastName' | 'email' | 'phone', value: string) => {
     let filteredValue = value;
@@ -109,8 +126,19 @@ const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining }) => {
             <div key={attendee.seatId} className="bg-white border border-slate-200 p-6 rounded-[32px] shadow-sm space-y-5">
               <div className="flex items-center justify-between border-b border-slate-50 pb-4">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">บัตรใบที่ {index + 1}</span>
-                <div className="px-3 py-1 bg-red-50 text-[#E4002B] rounded-full border border-red-100 font-black text-[10px] tracking-tight">
-                  SEAT: {formattedSeat}
+                <div className="flex items-center gap-2">
+                  {bookerInfo?.firstName && bookerInfo?.lastName && (
+                    <button
+                      type="button"
+                      onClick={() => handlePrefillFromBooker(index)}
+                      className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full border border-blue-200 font-bold text-[10px] tracking-tight transition"
+                    >
+                      ใช้ข้อมูลผู้จอง
+                    </button>
+                  )}
+                  <div className="px-3 py-1 bg-red-50 text-[#E4002B] rounded-full border border-red-100 font-black text-[10px] tracking-tight">
+                    SEAT: {formattedSeat}
+                  </div>
                 </div>
               </div>
               

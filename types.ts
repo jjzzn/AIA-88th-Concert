@@ -1,5 +1,5 @@
 
-export type BookingStep = 'USER_TYPE_SELECTION' | 'AGENT_CODE_ENTRY' | 'AGENT_TIER_SELECTION' | 'CODE_ENTRY' | 'SEAT_SELECTION' | 'DETAILS' | 'CONFIRMATION';
+export type BookingStep = 'USER_TYPE_SELECTION' | 'AGENT_CODE_ENTRY' | 'CONTACT_INFO' | 'CODE_ENTRY' | 'SEAT_SELECTION' | 'DETAILS' | 'CONFIRMATION';
 
 export type UserType = 'SELF' | 'AGENT';
 
@@ -41,6 +41,8 @@ export interface Attendee {
 export interface ContactInfo {
   email: string;
   phone: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface AgentInfo {

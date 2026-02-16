@@ -53,6 +53,8 @@ serve(async (req) => {
         booking_seats (
           first_name,
           last_name,
+          email,
+          phone,
           qr_token,
           seats (
             row,
@@ -79,12 +81,24 @@ serve(async (req) => {
     const attendees = booking.booking_seats.map((bs: any) => ({
       firstName: bs.first_name,
       lastName: bs.last_name,
+      email: bs.email,
+      phone: bs.phone,
       seat: `${bs.seats.row}${bs.seats.number.toString().padStart(2, '0')}`,
       qrToken: bs.qr_token,
       tier: bs.seats.zones?.tiers?.name || 'STANDARD',
     }))
 
     const tierName = attendees[0]?.tier || 'STANDARD'
+    
+    // Get primary contact email (use booking email or first attendee's email)
+    const contactEmail = booking.email || attendees[0]?.email
+    
+    if (!contactEmail) {
+      throw new Error('No email address found for booking')
+    }
+    
+    console.log('Sending email to:', contactEmail)
+    console.log('Attendees:', attendees.length)
 
     // Generate QR code URLs for each ticket
     const ticketsHtml = attendees.map((att: any, index: number) => {
@@ -211,6 +225,7 @@ serve(async (req) => {
     `
 
     // Send email via Resend
+    console.log('Attempting to send email via Resend...')
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -219,15 +234,17 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'AIA Concert <onboarding@resend.dev>', // Sandbox email
-        to: [booking.email],
+        to: [contactEmail],
         subject: `🎫 Booking Confirmation - AIA Concert 2025 (${attendees.length} Ticket${attendees.length > 1 ? 's' : ''})`,
         html: emailHtml,
       }),
     })
 
     const data = await res.json()
+    console.log('Resend API response:', data)
 
     if (!res.ok) {
+      console.error('Resend API error:', data)
       throw new Error(data.message || 'Failed to send email')
     }
 

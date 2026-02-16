@@ -10,6 +10,8 @@ type BookingCodeInsert = Database['public']['Tables']['booking_codes']['Insert']
 export interface BookingData {
   email: string;
   phone: string;
+  bookerFirstName?: string;
+  bookerLastName?: string;
   codes: string[];
   seats: Array<{
     seatId: string;
@@ -55,6 +57,8 @@ export const bookingService = {
         .insert({
           email: bookingData.email,
           phone: bookingData.phone,
+          booker_first_name: bookingData.bookerFirstName || null,
+          booker_last_name: bookingData.bookerLastName || null,
           status: 'confirmed',
           user_type: bookingData.userType || null,
           agent_code: bookingData.agentInfo?.agentCode || null,
@@ -132,13 +136,24 @@ export const bookingService = {
 
   async sendConfirmationEmail(bookingId: string): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('send-booking-confirmation', {
+      console.log('sendConfirmationEmail called with bookingId:', bookingId);
+      console.log('bookingId type:', typeof bookingId);
+      console.log('Sending individual ticket emails for booking:', bookingId);
+      
+      const { data, error } = await supabase.functions.invoke('send-individual-tickets', {
         body: { bookingId },
       });
 
       if (error) {
         console.error('Email function error:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
         return false;
+      }
+
+      console.log('Email results:', data);
+      
+      if (data?.errors && data.errors.length > 0) {
+        console.warn('Some emails failed to send:', data.errors);
       }
 
       return data?.success || false;
@@ -160,11 +175,13 @@ export const bookingService = {
             seat_id,
             first_name,
             last_name,
+            email,
+            phone,
             qr_token,
             checked_in,
             checked_in_at,
             created_at,
-            seats (*)
+            seats!booking_seats_seat_id_fkey (*)
           )
         `)
         .eq('id', bookingId)

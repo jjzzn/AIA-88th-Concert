@@ -19,6 +19,8 @@ export const seatSwapService = {
     try {
       const { code } = request;
 
+      console.log('🔍 Searching for QR token:', code);
+
       // Try to find by QR token first
       const { data: bookingSeat, error } = await supabase
         .from('booking_seats')
@@ -35,7 +37,7 @@ export const seatSwapService = {
             phone,
             created_at
           ),
-          seats (
+          seats!booking_seats_seat_id_fkey (
             id,
             row,
             number,
@@ -57,7 +59,18 @@ export const seatSwapService = {
         .eq('qr_token', code)
         .single();
 
-      if (error || !bookingSeat) {
+      console.log('📊 Query result:', { data: bookingSeat, error });
+
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        return {
+          success: false,
+          message: `ไม่พบรหัสนี้ในระบบ: ${error.message}`
+        };
+      }
+
+      if (!bookingSeat) {
+        console.error('❌ No booking seat found');
         return {
           success: false,
           message: 'ไม่พบรหัสนี้ในระบบ กรุณาตรวจสอบอีกครั้ง'
