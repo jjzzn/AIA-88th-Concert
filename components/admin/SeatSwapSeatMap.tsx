@@ -336,9 +336,9 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
             }
             
             return (
-            <div key={row} className="flex items-center gap-3 min-w-fit">
-              <span className="w-4 text-[11px] font-black text-slate-400">{row}</span>
-              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${numCols}, minmax(0, 1fr))` }}>
+            <div key={row} className="flex items-center gap-2 min-w-fit">
+              <span className="w-6 text-[11px] font-black text-slate-400">{row}</span>
+              <div className="flex gap-2">
                 {seats.map(seat => {
                   const isCurrentSeat = seat.seat_id === currentSeatId;
                   const seatLabel = `${seat.row}${seat.number.toString().padStart(2, '0')}`;
@@ -364,7 +364,7 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
                   );
                 })}
               </div>
-              <span className="w-4 text-[11px] font-black text-slate-400 text-right">{row}</span>
+              <span className="w-6 text-[11px] font-black text-slate-400 text-right">{row}</span>
             </div>
             );
           })}

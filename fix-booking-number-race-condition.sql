@@ -1,4 +1,4 @@
--- Fix booking number generation race condition
+ -- Fix booking number generation race condition
 -- This prevents duplicate booking numbers when multiple bookings happen simultaneously
 
 -- Drop existing functions and trigger
