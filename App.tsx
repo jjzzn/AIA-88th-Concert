@@ -114,14 +114,24 @@ const App: React.FC = () => {
       // Fetch booking with qr_tokens
       const booking = await bookingService.getBooking(result.bookingId);
       
+      console.log('App.tsx - Fetched booking:', booking);
+      console.log('App.tsx - Booking seats:', booking?.booking_seats);
+      
       if (booking && booking.booking_seats) {
         // Update attendees with qr_token
-        const updatedAttendees = attendees.map((attendee, index) => ({
-          ...attendee,
-          qrToken: booking.booking_seats[index]?.qr_token || '',
-        }));
+        const updatedAttendees = attendees.map((attendee, index) => {
+          const qrToken = booking.booking_seats[index]?.qr_token || '';
+          console.log(`App.tsx - Attendee ${index} qrToken:`, qrToken);
+          return {
+            ...attendee,
+            qrToken,
+          };
+        });
         
+        console.log('App.tsx - Updated attendees:', updatedAttendees);
         setState(prev => ({ ...prev, attendees: updatedAttendees }));
+      } else {
+        console.error('App.tsx - No booking or booking_seats found');
       }
       
       setBookingId(result.bookingId);
