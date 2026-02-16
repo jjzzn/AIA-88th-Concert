@@ -114,70 +114,103 @@ serve(async (req) => {
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Your Ticket - AIA Concert 2025</title>
+              <title>Booking Confirmed - AIA Concert 2025</title>
+              <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Sarabun:wght@400;500;700&display=swap');
+                body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+                table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+                img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+                table { border-collapse: collapse !important; }
+                body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+              </style>
             </head>
             <body style="margin: 0; padding: 0; font-family: 'Inter', 'Sarabun', Helvetica, Arial, sans-serif; background-color: #F5F5F7; color: #1F2937;">
-              <div style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; overflow: hidden;">
+              <div style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; overflow: hidden; font-family: 'Inter', 'Sarabun', sans-serif;">
                 
-                <div style="background-color: ${tierColor}; padding: 40px 20px; text-align: center;">
+                <div style="background-color: #E4002B; padding: 40px 20px; text-align: center;">
                   <div style="margin-bottom: 16px;">
                     <span style="background: rgba(255,255,255,0.15); color: #ffffff; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 700; letter-spacing: 1px;">AIA CONCERT 2025</span>
                   </div>
-                  <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Your Ticket</h1>
-                  <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">ตั๋วของคุณพร้อมแล้ว!</p>
+                  <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Booking Confirmed</h1>
+                  <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">ขอบคุณสำหรับการจอง ตั๋วของคุณพร้อมแล้ว!</p>
                 </div>
 
                 <div style="padding: 32px 24px;">
-                  <div style="text-align: center; margin-bottom: 32px;">
-                    <h2 style="font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #111827;">${seat.first_name} ${seat.last_name}</h2>
-                    <div style="display: inline-block; background: #FEF2F2; padding: 12px 32px; border-radius: 12px; border: 2px solid ${tierColor};">
-                      <span style="color: #6B7280; font-size: 12px; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 4px;">Seat Number</span>
-                      <div style="color: ${tierColor}; font-size: 32px; font-weight: 800; line-height: 1;">${seatNumber}</div>
+                  <table style="width: 100%; margin-bottom: 32px;">
+                    <tr>
+                      <td style="vertical-align: top; padding-right: 12px; width: 50%;">
+                        <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.5px;">DATE & TIME</p>
+                        <p style="margin: 0; font-size: 16px; font-weight: 600; color: #111827;">24 May 2025</p>
+                        <p style="margin: 2px 0 0 0; font-size: 14px; color: #6B7280;">19:00 PM</p>
+                      </td>
+                      <td style="vertical-align: top; padding-left: 12px; width: 50%;">
+                        <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.5px;">LOCATION</p>
+                        <p style="margin: 0; font-size: 16px; font-weight: 600; color: #111827;">IMPACT Arena</p>
+                        <p style="margin: 2px 0 0 0; font-size: 14px; color: #6B7280;">Muang Thong Thani</p>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <div style="margin-bottom: 40px;">
+                    <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 20px 0; color: #111827;">Your Ticket</h2>
+
+                    <div style="border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                      <div style="background: #FAFAFA; padding: 16px 20px; border-bottom: 1px dashed #D1D5DB;">
+                        <table style="width: 100%;">
+                          <tr>
+                            <td style="text-align: left;">
+                              <span style="font-weight: 700; font-size: 14px; color: #374151;">${seat.first_name} ${seat.last_name}</span>
+                            </td>
+                            <td style="text-align: right;">
+                              <span style="background: #E4002B; color: white; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px;">${tierName}</span>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                      <div style="padding: 24px; text-align: center;">
+                        <img src="${qrCodeUrl}" alt="QR Code" style="width: 160px; height: 160px; display: block; margin: 0 auto 12px auto;">
+                        <p style="margin: 0 0 20px 0; font-size: 13px; font-weight: 700; color: #6B7280; letter-spacing: 0.5px;">${seat.qr_token}</p>
+                        
+                        <div style="display: inline-block; background: #FEF2F2; padding: 8px 24px; border-radius: 8px; border: 1px solid #FEE2E2;">
+                          <span style="color: #991B1B; font-size: 12px; font-weight: 600; text-transform: uppercase;">Seat Number</span>
+                          <div style="color: #E4002B; font-size: 24px; font-weight: 800; line-height: 1.2;">${seatNumber}</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div style="background-color: #F9FAFB; padding: 24px; border-radius: 16px; margin-bottom: 32px;">
-                    <table style="width: 100%; margin-bottom: 24px;">
+                  <div style="background-color: #F9FAFB; padding: 24px; border-radius: 12px; margin-bottom: 32px;">
+                    <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700;">Order Summary</h3>
+                    <table style="width: 100%; font-size: 14px;">
                       <tr>
-                        <td style="vertical-align: top; padding-right: 12px; width: 50%;">
-                          <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.5px;">DATE & TIME</p>
-                          <p style="margin: 0; font-size: 16px; font-weight: 600; color: #111827;">24 May 2025</p>
-                          <p style="margin: 2px 0 0 0; font-size: 14px; color: #6B7280;">19:00 PM</p>
-                        </td>
-                        <td style="vertical-align: top; padding-left: 12px; width: 50%;">
-                          <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.5px;">LOCATION</p>
-                          <p style="margin: 0; font-size: 16px; font-weight: 600; color: #111827;">IMPACT Arena</p>
-                          <p style="margin: 2px 0 0 0; font-size: 14px; color: #6B7280;">Muang Thong Thani</p>
-                        </td>
+                        <td style="padding-bottom: 8px; color: #6B7280;">Booking ID</td>
+                        <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">${booking.id}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 8px; color: #6B7280;">Attendee</td>
+                        <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">${seat.first_name} ${seat.last_name}</td>
+                      </tr>
+                      <tr>
+                        <td style="color: #6B7280;">Seat</td>
+                        <td style="text-align: right; font-weight: 600; color: #111827;">${seatNumber}</td>
                       </tr>
                     </table>
-
-                    <div style="text-align: center; padding: 24px; background: white; border-radius: 12px;">
-                      <p style="margin: 0 0 16px 0; font-size: 14px; font-weight: 700; color: #374151;">Your QR Code</p>
-                      <img src="${qrCodeUrl}" alt="QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto 16px auto;">
-                      <p style="margin: 0; font-size: 13px; font-weight: 700; color: #6B7280; letter-spacing: 0.5px;">${seat.qr_token}</p>
-                    </div>
                   </div>
 
-                  <div style="background-color: #FEF2F2; padding: 20px; border-radius: 12px; border-left: 4px solid ${tierColor}; margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; color: #991B1B; letter-spacing: 0.5px;">⚠️ Important</h3>
+                  <div>
+                    <h3 style="margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; color: #9CA3AF; letter-spacing: 0.5px;">Important Info</h3>
                     <ul style="margin: 0; padding-left: 20px; color: #4B5563; font-size: 14px; line-height: 1.6;">
-                      <li style="margin-bottom: 6px;">แสดง QR Code นี้ที่จุดลงทะเบียน</li>
-                      <li style="margin-bottom: 6px;">QR Code สามารถสแกนได้เพียง 1 ครั้ง</li>
+                      <li style="margin-bottom: 6px;">แสดง QR Code ที่จุดลงทะเบียน (Check-in)</li>
+                      <li style="margin-bottom: 6px;">QR Code สามารถสแกนได้เพียง 1 ครั้งต่อใบ</li>
                       <li style="margin-bottom: 6px;">กรุณามาถึงก่อนเวลาเริ่มแสดง 30 นาที</li>
                       <li>ห้ามแชร์ QR Code ให้กับผู้อื่น</li>
                     </ul>
-                  </div>
-
-                  <div style="text-align: center; padding: 16px; background: #F9FAFB; border-radius: 8px;">
-                    <p style="margin: 0 0 4px 0; font-size: 12px; color: #6B7280;">Tier</p>
-                    <span style="background: ${tierColor}; color: white; font-size: 14px; font-weight: 700; padding: 6px 16px; border-radius: 6px; display: inline-block;">${tierName}</span>
                   </div>
                 </div>
 
                 <div style="background-color: #F3F4F6; padding: 32px 24px; text-align: center; border-top: 1px solid #E5E7EB;">
                   <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #374151;">Need Help?</p>
-                  <p style="margin: 0 0 24px 0; font-size: 14px; color: #6B7280;">Contact us at <a href="mailto:support@aiaconcert.com" style="color: ${tierColor}; text-decoration: none;">support@aiaconcert.com</a></p>
+                  <p style="margin: 0 0 24px 0; font-size: 14px; color: #6B7280;">Contact us at <a href="mailto:support@aiaconcert.com" style="color: #E4002B; text-decoration: none;">support@aiaconcert.com</a></p>
                   <p style="margin: 0; font-size: 12px; color: #9CA3AF;">© 2025 AIA Concert. All rights reserved.</p>
                 </div>
               </div>
