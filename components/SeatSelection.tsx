@@ -109,6 +109,16 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
     return r;
   }, [zoneSeats]);
 
+  // Calculate min and max seat numbers across all rows in the zone
+  const { minSeatNumber, maxSeatNumber } = useMemo(() => {
+    if (zoneSeats.length === 0) return { minSeatNumber: 1, maxSeatNumber: 20 };
+    const allNumbers = zoneSeats.map(s => s.number);
+    return {
+      minSeatNumber: Math.min(...allNumbers),
+      maxSeatNumber: Math.max(...allNumbers)
+    };
+  }, [zoneSeats]);
+
   const handleSeatClick = (seat: Seat) => {
     if (seat.is_booked) return;
     
@@ -434,20 +444,13 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
             const rowSeats = rows[rowName];
             const seatsPerRow = rowSeats.length;
             
-            // Determine grid columns based on zone and row
-            let numCols = 8; // default
-            if (selectedZone && (selectedZone.name === 'ZONE A1' || selectedZone.name === 'ZONE A4')) {
-              numCols = 12; // 12 seats per row
-            } else if (selectedZone && (selectedZone.name === 'ZONE A2' || selectedZone.name === 'ZONE A3')) {
-              // Rows AA-AS: 20 seats, Rows AT-AX: 12 seats
-              const rowsWithTwenty = ['AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AP', 'AQ', 'AR', 'AS'];
-              numCols = rowsWithTwenty.includes(rowName) ? 20 : 12;
-            }
+            // Calculate number of columns needed (from min to max seat number)
+            const numCols = maxSeatNumber - minSeatNumber + 1;
             
             return (
             <div key={rowName} className="flex items-center gap-3">
               <span className="w-6 text-[11px] font-black text-slate-400">{rowName}</span>
-              <div className="flex gap-3">
+              <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${numCols}, 48px)` }}>
                 {rows[rowName].map(seat => {
                   const isSelected = selectedSeatIds.includes(seat.id);
                   const availability = seatAvailability[seat.id];
@@ -464,11 +467,15 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
                     });
                   }
                   
+                  // Calculate grid column position relative to minSeatNumber
+                  const gridCol = seat.number - minSeatNumber + 1;
+                  
                   return (
                     <button
                       key={seat.id}
                       onClick={() => handleSeatClick(seat)}
                       disabled={seat.is_booked || isLocked}
+                      style={{ gridColumn: gridCol }}
                       className={`
                         relative w-9 h-9 rounded-xl transition-all duration-300 transform flex items-center justify-center
                         text-[8px] font-black tracking-tighter

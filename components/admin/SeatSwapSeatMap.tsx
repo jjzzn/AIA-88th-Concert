@@ -107,6 +107,25 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
     return rows;
   }, [selectedZone, zones, currentSeatInfo, currentSeatId]);
 
+  // Calculate min and max seat numbers across all rows in the selected zone
+  const { minSeatNumber, maxSeatNumber } = useMemo(() => {
+    if (!selectedZone) return { minSeatNumber: 1, maxSeatNumber: 20 };
+    
+    const zone = zones.find(z => z.zone_id === selectedZone);
+    if (!zone || zone.seats.length === 0) return { minSeatNumber: 1, maxSeatNumber: 20 };
+    
+    const allNumbers = zone.seats.map(s => s.number);
+    // Also include current seat if in this zone
+    if (currentSeatInfo.zone_id === selectedZone) {
+      allNumbers.push(currentSeatInfo.number);
+    }
+    
+    return {
+      minSeatNumber: Math.min(...allNumbers),
+      maxSeatNumber: Math.max(...allNumbers)
+    };
+  }, [selectedZone, zones, currentSeatInfo]);
+
   const selectedZoneInfo = zones.find(z => z.zone_id === selectedZone);
 
   // Zone Selection View
@@ -325,28 +344,25 @@ const SeatSwapSeatMap: React.FC<Props> = ({ currentSeatId, currentSeatInfo, onSe
         {Object.entries(rowSeats)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([row, seats]) => {
-            // Determine grid columns based on zone and row
-            let numCols = 8; // default
-            if (selectedZoneInfo && (selectedZoneInfo.zone_name === 'ZONE A1' || selectedZoneInfo.zone_name === 'ZONE A4')) {
-              numCols = 12; // 12 seats per row
-            } else if (selectedZoneInfo && (selectedZoneInfo.zone_name === 'ZONE A2' || selectedZoneInfo.zone_name === 'ZONE A3')) {
-              // Rows AA-AS: 20 seats, Rows AT-AX: 12 seats
-              const rowsWithTwenty = ['AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AP', 'AQ', 'AR', 'AS'];
-              numCols = rowsWithTwenty.includes(row) ? 20 : 12;
-            }
+            // Calculate number of columns needed (from min to max seat number)
+            const numCols = maxSeatNumber - minSeatNumber + 1;
             
             return (
             <div key={row} className="flex items-center gap-2 min-w-fit">
               <span className="w-6 text-[11px] font-black text-slate-400">{row}</span>
-              <div className="flex gap-2">
+              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${numCols}, 48px)` }}>
                 {seats.map(seat => {
                   const isCurrentSeat = seat.seat_id === currentSeatId;
                   const seatLabel = `${seat.row}${seat.number.toString().padStart(2, '0')}`;
+                  
+                  // Calculate grid column position relative to minSeatNumber
+                  const gridCol = seat.number - minSeatNumber + 1;
                   
                   return (
                     <button
                       key={seat.seat_id}
                       onClick={() => onSeatSelect(seat)}
+                      style={{ gridColumn: gridCol }}
                       className={`
                         w-9 h-9 rounded-xl transition-all duration-300 transform flex items-center justify-center
                         text-[8px] font-black tracking-tighter
