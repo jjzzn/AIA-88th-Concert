@@ -1,9 +1,10 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { BookingState, Seat } from '../types';
-import { CheckCircle2, Download, Calendar, MapPin, Star } from 'lucide-react';
+import { CheckCircle2, Download, Calendar, MapPin, Star, Settings } from 'lucide-react';
 import QRCode from './QRCode';
 import html2canvas from 'html2canvas';
+import TicketManagementModal from './TicketManagementModal';
 
 interface Props {
   state: BookingState;
@@ -16,6 +17,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
   const tierColor = state.selectedTier?.color || '#E4002B';
   const isSingleTicket = state.attendees.length === 1;
   const ticketRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [managingTicket, setManagingTicket] = useState<{ attendee: any; seat: any; index: number } | null>(null);
 
   const handleDownloadImage = async (index: number) => {
     const ticketElement = ticketRefs.current[index];
@@ -100,9 +102,18 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
             const row = seat?.row || 'A';
             const num = seat?.number?.toString().padStart(2, '0') || '01';
             // Use qr_token from attendee (populated after booking) or from seat data
-            const qrToken = (attendee as any).qrToken || (seat as any)?.qr_token || '';
+            const qrToken = (attendee as any).qrToken || (seat as any)?.qr_token || `AIA-${Math.floor(100000 + Math.random() * 900000)}`;
             const isCheckedIn = (attendee as any).isCheckedIn || false;
             const checkedInAt = (attendee as any).checkedInAt;
+            
+            // Debug logging
+            console.log('Confirmation - Attendee:', index, {
+              attendeeQrToken: (attendee as any).qrToken,
+              seatQrToken: (seat as any)?.qr_token,
+              finalQrToken: qrToken,
+              attendee,
+              seat
+            });
             
             // Get zone information
             const zoneId = seat?.zone_id || seat?.zoneId || '';
@@ -214,6 +225,31 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
                         <span className="text-sm font-bold leading-tight">IMPACT ARENA, MUANG THONG THANI</span>
                       </div>
                     </div>
+
+                    {/* Manage Booking Button - Only show in popup mode (My Ticket) */}
+                    {isPopup && !isCheckedIn && !(attendee as any).isCancelled && (
+                      <div className="pt-4 border-t border-slate-100">
+                        <button
+                          onClick={() => setManagingTicket({ 
+                            attendee: {
+                              ...attendee,
+                              bookingSeatId: (attendee as any).bookingSeatId,
+                              qrToken: qrToken,
+                              isCheckedIn: isCheckedIn,
+                              cancelCount: (attendee as any).cancelCount || 0,
+                              swapCount: (attendee as any).swapCount || 0,
+                              isCancelled: (attendee as any).isCancelled || false,
+                            }, 
+                            seat: seat, 
+                            index 
+                          })}
+                          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition active:scale-95"
+                        >
+                          <Settings className="w-4 h-4" />
+                          จัดการการจอง
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -271,6 +307,20 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
             กลับสู่หน้าหลัก
           </button>
         </div>
+      )}
+
+      {/* Ticket Management Modal */}
+      {managingTicket && (
+        <TicketManagementModal
+          isOpen={true}
+          onClose={() => setManagingTicket(null)}
+          attendee={managingTicket.attendee}
+          seat={managingTicket.seat}
+          onSuccess={() => {
+            // Refresh the page to show updated data
+            window.location.reload();
+          }}
+        />
       )}
     </div>
   );

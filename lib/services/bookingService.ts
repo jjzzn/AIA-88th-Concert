@@ -46,6 +46,8 @@ export const bookingService = {
         return { success: false, error: 'Some seats are no longer available' };
       }
 
+      console.log('bookingService.createBooking - Saving phone:', bookingData.phone);
+      
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
@@ -58,6 +60,8 @@ export const bookingService = {
         })
         .select()
         .single();
+      
+      console.log('bookingService.createBooking - Booking created with phone:', booking?.phone);
 
       if (bookingError || !booking) {
         console.error('Booking creation error:', bookingError);
@@ -172,11 +176,21 @@ export const bookingService = {
 
   async getBookingByPhone(phone: string) {
     try {
-      // Normalize phone number (remove leading 0 if present)
-      const normalizedPhone = phone.startsWith('0') ? phone.substring(1) : phone;
-      const phoneWithZero = phone.startsWith('0') ? phone : `0${phone}`;
+      // Normalize phone number - remove all non-digits first
+      const digitsOnly = phone.replace(/\D/g, '');
       
-      console.log('Searching for phone:', phone, 'normalized:', normalizedPhone, 'with zero:', phoneWithZero);
+      // Try different formats
+      const phoneVariants = [
+        phone,                                          // Original: 0947064424
+        digitsOnly,                                     // Digits only: 0947064424
+        digitsOnly.startsWith('0') ? digitsOnly.substring(1) : digitsOnly,  // Without 0: 947064424
+        digitsOnly.startsWith('0') ? digitsOnly : `0${digitsOnly}`,         // With 0: 0947064424
+      ];
+      
+      // Remove duplicates
+      const uniqueVariants = [...new Set(phoneVariants)];
+      
+      console.log('Searching for phone variants:', uniqueVariants);
       
       const { data, error } = await supabase
         .from('bookings')
@@ -189,6 +203,11 @@ export const bookingService = {
             seat_id,
             qr_token,
             checked_in,
+            is_cancelled,
+            cancelled_at,
+            cancel_count,
+            swap_count,
+            original_seat_id,
             seats (
               id,
               row,
@@ -214,7 +233,7 @@ export const bookingService = {
             )
           )
         `)
-        .or(`phone.eq.${phone},phone.eq.${normalizedPhone},phone.eq.${phoneWithZero}`)
+        .or(uniqueVariants.map(v => `phone.eq.${v}`).join(','))
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -223,6 +242,10 @@ export const bookingService = {
       }
       
       console.log('Found bookings:', data?.length || 0);
+      if (data && data.length > 0) {
+        console.log('First booking phone:', data[0].phone);
+        console.log('First booking seats:', data[0].booking_seats?.length || 0);
+      }
       return data || [];
     } catch (error) {
       console.error('Failed to fetch booking by phone:', error);

@@ -27,9 +27,13 @@ const TicketRetrievalModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setIsRetrieving(true);
     
     try {
+      console.log('TicketRetrievalModal - Searching for phone:', retrievalPhone);
       const bookings = await bookingService.getBookingByPhone(retrievalPhone);
+      console.log('TicketRetrievalModal - Bookings found:', bookings);
+      console.log('TicketRetrievalModal - Bookings count:', bookings?.length || 0);
       
       if (!bookings || bookings.length === 0) {
+        console.error('TicketRetrievalModal - No bookings found for phone:', retrievalPhone);
         setRetrievalError('ไม่พบข้อมูลการจองด้วยเบอร์นี้');
         setIsRetrieving(false);
         return;
@@ -38,6 +42,7 @@ const TicketRetrievalModal: React.FC<Props> = ({ isOpen, onClose }) => {
       setAllBookings(bookings);
       setIsRetrieving(false);
     } catch (error) {
+      console.error('TicketRetrievalModal - Error searching:', error);
       setRetrievalError('เกิดข้อผิดพลาดในการค้นหา');
       setIsRetrieving(false);
     }
@@ -142,8 +147,12 @@ const TicketRetrievalModal: React.FC<Props> = ({ isOpen, onClose }) => {
                                 lastName: bs.last_name,
                                 seatId: bs.seat_id,
                                 qrToken: bs.qr_token,
+                                bookingSeatId: bs.id,
                                 isCheckedIn: bs.checked_in || (bs.check_ins && bs.check_ins.length > 0),
                                 checkedInAt: bs.check_ins?.[0]?.checked_in_at,
+                                cancelCount: bs.cancel_count || 0,
+                                swapCount: bs.swap_count || 0,
+                                isCancelled: bs.is_cancelled || false,
                               })) || [];
 
                               const seats = booking.booking_seats?.map((bs: any) => ({
