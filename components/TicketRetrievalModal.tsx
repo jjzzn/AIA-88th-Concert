@@ -39,7 +39,8 @@ const TicketRetrievalModal: React.FC<Props> = ({ isOpen, onClose }) => {
         return;
       }
 
-      setAllBookings(bookings);
+      // Navigate to my-tickets page with phone number
+      window.location.href = `/my-tickets?phone=${retrievalPhone}`;
       setIsRetrieving(false);
     } catch (error) {
       console.error('TicketRetrievalModal - Error searching:', error);

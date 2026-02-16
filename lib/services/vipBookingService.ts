@@ -20,7 +20,7 @@ function generateQRToken(): string {
 }
 
 export const vipBookingService = {
-  // Get all VIP rooms
+  // Get all VIP rooms with booking statistics
   async getRooms(): Promise<VIPRoom[]> {
     const { data, error } = await supabase
       .from('vip_rooms')
@@ -32,13 +32,25 @@ export const vipBookingService = {
       return [];
     }
 
-    return (data || []).map((room: any) => ({
-      id: room.id,
-      roomNumber: room.room_number,
-      name: room.name,
-      capacity: room.capacity,
-      layout: this.generateLayout(room.capacity),
+    // Get booking statistics for each room
+    const roomsWithStats = await Promise.all((data || []).map(async (room: any) => {
+      const { count } = await supabase
+        .from('vip_seats')
+        .select('*', { count: 'exact', head: true })
+        .eq('room_id', room.id)
+        .eq('is_booked', true);
+
+      return {
+        id: room.id,
+        roomNumber: room.room_number,
+        name: room.name,
+        capacity: room.capacity,
+        bookedCount: count || 0,
+        layout: this.generateLayout(room.capacity),
+      };
     }));
+
+    return roomsWithStats;
   },
 
   // Get seats for a specific room
