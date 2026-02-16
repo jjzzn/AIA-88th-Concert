@@ -28,11 +28,21 @@ export const codeService = {
       }
 
       const tierIds = new Set(accessCodes.map(c => c.tier_id));
-      if (tierIds.size > 1) {
+      
+      // Allow PT and GD codes to be mixed (they share the same zones)
+      const hasPT = Array.from(tierIds).some(id => id === 'PT');
+      const hasGD = Array.from(tierIds).some(id => id === 'GD');
+      const isPTGDMix = hasPT && hasGD && tierIds.size === 2;
+      
+      if (tierIds.size > 1 && !isPTGDMix) {
         return { isValid: false, error: 'All codes must be for the same tier' };
       }
 
-      const tier = (accessCodes[0] as any).tiers;
+      // For PT/GD mix, use PT tier (higher tier)
+      const tier = isPTGDMix 
+        ? (accessCodes.find(c => c.tier_id === 'PT') as any)?.tiers 
+        : (accessCodes[0] as any).tiers;
+      
       return { isValid: true, tier };
     } catch (error) {
       console.error('Code validation error:', error);

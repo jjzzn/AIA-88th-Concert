@@ -41,8 +41,8 @@ const App: React.FC = () => {
 
   const handleAgentInfoSubmit = (agentInfo: AgentInfo) => {
     setState(prev => ({ ...prev, agentInfo }));
-    // Agent goes to contact info
-    setStep('CONTACT_INFO');
+    // Agent goes directly to code entry
+    setStep('CODE_ENTRY');
   };
 
   const handleContactInfoSubmit = (contact: ContactInfo) => {
@@ -187,6 +187,8 @@ const App: React.FC = () => {
 
   const handleBack = async () => {
     if (step === 'AGENT_CODE_ENTRY') {
+      setStep('USER_TYPE_SELECTION');
+    } else if (step === 'CONTACT_INFO') {
       setStep('USER_TYPE_SELECTION');
     }
     if (step === 'CODE_ENTRY') {

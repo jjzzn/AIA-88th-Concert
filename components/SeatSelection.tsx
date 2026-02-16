@@ -219,33 +219,35 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
           <p className="text-[10px] font-bold text-[#E4002B] uppercase tracking-wider mb-1">SELECT YOUR ZONE</p>
           <h2 className="text-2xl font-black text-slate-900 mb-6">เลือกโซนที่ต้องการ</h2>
           
-          {/* Compact Tier Header Display */}
-          <div 
-            className="mb-4 p-5 rounded-[28px] relative overflow-hidden text-white shadow-[0_15px_30px_rgba(0,0,0,0.12)] transition-all duration-500"
-            style={{ 
-              background: `linear-gradient(135deg, ${tier.color} 0%, #1e1b1b 100%)` 
-            }}
-          >
-            <div className="relative z-10 space-y-3">
-              <div className="space-y-0.5">
-                <p className="text-[9px] font-bold uppercase tracking-widest opacity-80">YOUR TIER LEVEL</p>
-                <div className="flex items-center gap-2">
-                   <h3 className="text-3xl font-black italic tracking-tight uppercase leading-none">{tier.name}</h3>
-                   <div className="px-1.5 py-0.5 border border-white/30 rounded-md text-[9px] font-black uppercase tracking-widest">
-                      {tier.level}
-                   </div>
+          {/* Compact Tier Header Display - Hide for PT and GD codes */}
+          {tier.id !== 'PT' && tier.id !== 'GD' && (
+            <div 
+              className="mb-4 p-5 rounded-[28px] relative overflow-hidden text-white shadow-[0_15px_30px_rgba(0,0,0,0.12)] transition-all duration-500"
+              style={{ 
+                background: `linear-gradient(135deg, ${tier.color} 0%, #1e1b1b 100%)` 
+              }}
+            >
+              <div className="relative z-10 space-y-3">
+                <div className="space-y-0.5">
+                  <p className="text-[9px] font-bold uppercase tracking-widest opacity-80">YOUR TIER LEVEL</p>
+                  <div className="flex items-center gap-2">
+                     <h3 className="text-3xl font-black italic tracking-tight uppercase leading-none">{tier.name}</h3>
+                     <div className="px-1.5 py-0.5 border border-white/30 rounded-md text-[9px] font-black uppercase tracking-widest">
+                        {tier.level}
+                     </div>
+                  </div>
                 </div>
+                <p className="text-xs font-medium opacity-90 max-w-[200px] leading-snug">
+                  {tier.description}
+                </p>
               </div>
-              <p className="text-xs font-medium opacity-90 max-w-[200px] leading-snug">
-                {tier.description}
-              </p>
+              
+              {/* Background Star Decoration - Smaller and shifted more for a cleaner look */}
+              <div className="absolute top-1/2 -right-6 -translate-y-1/2 text-white/5 pointer-events-none">
+                 <Star className="w-40 h-40" strokeWidth={1.2} />
+              </div>
             </div>
-            
-            {/* Background Star Decoration - Smaller and shifted more for a cleaner look */}
-            <div className="absolute top-1/2 -right-6 -translate-y-1/2 text-white/5 pointer-events-none">
-               <Star className="w-40 h-40" strokeWidth={1.2} />
-            </div>
-          </div>
+          )}
 
           <ArenaMap />
 
