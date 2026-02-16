@@ -34,6 +34,8 @@ export interface Attendee {
   firstName: string;
   lastName: string;
   seatId: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface ContactInfo {

@@ -279,7 +279,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
                     const remaining = zone.capacity - bookedInZone;
                     return (
                       <button
-                        key={zone.id}
+                        key={`level1-${zone.id}`}
                         onClick={() => setSelectedZone(zone)}
                         className="relative overflow-hidden group text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all active:scale-[0.98]"
                       >
@@ -329,7 +329,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
                     const remaining = zone.capacity - bookedInZone;
                     return (
                       <button
-                        key={zone.id}
+                        key={`level2-${zone.id}`}
                         onClick={() => setSelectedZone(zone)}
                         className="relative overflow-hidden group text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-purple-200 transition-all active:scale-[0.98]"
                       >
@@ -379,7 +379,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
                     const remaining = zone.capacity - bookedInZone;
                     return (
                       <button
-                        key={zone.id}
+                        key={`level3-${zone.id}`}
                         onClick={() => setSelectedZone(zone)}
                         className="relative overflow-hidden group text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all active:scale-[0.98]"
                       >

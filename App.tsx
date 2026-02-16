@@ -40,10 +40,8 @@ const App: React.FC = () => {
 
   const handleAgentInfoSubmit = (agentInfo: AgentInfo) => {
     setState(prev => ({ ...prev, agentInfo }));
-    // Agent goes directly to seat selection
-    setStep('SEAT_SELECTION');
-    // Start 5-minute countdown
-    setTimeRemaining(300);
+    // Agent goes to code entry
+    setStep('CODE_ENTRY');
   };
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);

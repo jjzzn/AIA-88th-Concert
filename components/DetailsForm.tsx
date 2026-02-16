@@ -11,15 +11,25 @@ interface Props {
 
 const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining }) => {
   const [attendees, setAttendees] = useState<Attendee[]>(
-    seats.map(s => ({ firstName: '', lastName: '', seatId: s.id }))
+    seats.map(s => ({ firstName: '', lastName: '', seatId: s.id, email: '', phone: '' }))
   );
   const [contact, setContact] = useState<ContactInfo>({ email: '', phone: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAttendeeChange = (index: number, field: 'firstName' | 'lastName', value: string) => {
-    // Restriction: Allow only Thai characters (ก-ฮ and vowels/tone marks), English letters (A-Z, a-z), and spaces
-    const filteredValue = value.replace(/[^a-zA-Z\u0E00-\u0E7F\s]/g, '');
+  const handleAttendeeChange = (index: number, field: 'firstName' | 'lastName' | 'email' | 'phone', value: string) => {
+    let filteredValue = value;
+    
+    if (field === 'firstName' || field === 'lastName') {
+      // Allow only Thai characters (ก-ฮ and vowels/tone marks), English letters (A-Z, a-z), and spaces
+      filteredValue = value.replace(/[^a-zA-Z\u0E00-\u0E7F\s]/g, '');
+    } else if (field === 'phone') {
+      filteredValue = value.replace(/\D/g, '').slice(0, 10);
+    } else if (field === 'email') {
+      // Allow only English characters, numbers, and common email symbols
+      filteredValue = value.replace(/[^a-zA-Z0-9@._+\-]/g, '');
+    }
+    
     const newAttendees = [...attendees];
     newAttendees[index] = { ...newAttendees[index], [field]: filteredValue };
     setAttendees(newAttendees);
@@ -44,6 +54,12 @@ const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining }) => {
     attendees.forEach((a, i) => {
       if (!a.firstName.trim()) newErrors[`f${i}`] = 'กรุณากรอกชื่อ';
       if (!a.lastName.trim()) newErrors[`l${i}`] = 'กรุณากรอกนามสกุล';
+      if (!a.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email)) {
+        newErrors[`e${i}`] = 'กรุณากรอกอีเมลที่ถูกต้อง';
+      }
+      if (!a.phone || a.phone.length !== 10) {
+        newErrors[`p${i}`] = 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก';
+      }
     });
 
     if (!contact.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) {
@@ -98,26 +114,64 @@ const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining }) => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">ชื่อ (ก-ฮ, A-Z)</label>
-                  <input
-                    type="text"
-                    value={attendee.firstName}
-                    onChange={(e) => handleAttendeeChange(index, 'firstName', e.target.value)}
-                    className={`w-full bg-slate-50 border-2 ${errors[`f${index}`] ? 'border-red-500' : 'border-slate-50'} rounded-2xl px-4 py-4 text-sm font-bold focus:border-[#E4002B] focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-300`}
-                    placeholder="สมชาย"
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">ชื่อ (ก-ฮ, A-Z)</label>
+                    <input
+                      type="text"
+                      value={attendee.firstName}
+                      onChange={(e) => handleAttendeeChange(index, 'firstName', e.target.value)}
+                      className={`w-full bg-slate-50 border-2 ${errors[`f${index}`] ? 'border-red-500' : 'border-slate-50'} rounded-2xl px-4 py-4 text-sm font-bold focus:border-[#E4002B] focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-300`}
+                      placeholder="สมชาย"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">นามสกุล (ก-ฮ, A-Z)</label>
+                    <input
+                      type="text"
+                      value={attendee.lastName}
+                      onChange={(e) => handleAttendeeChange(index, 'lastName', e.target.value)}
+                      className={`w-full bg-slate-50 border-2 ${errors[`l${index}`] ? 'border-red-500' : 'border-slate-50'} rounded-2xl px-4 py-4 text-sm font-bold focus:border-[#E4002B] focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-300`}
+                      placeholder="ใจดี"
+                    />
+                  </div>
                 </div>
+                
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">นามสกุล (ก-ฮ, A-Z)</label>
-                  <input
-                    type="text"
-                    value={attendee.lastName}
-                    onChange={(e) => handleAttendeeChange(index, 'lastName', e.target.value)}
-                    className={`w-full bg-slate-50 border-2 ${errors[`l${index}`] ? 'border-red-500' : 'border-slate-50'} rounded-2xl px-4 py-4 text-sm font-bold focus:border-[#E4002B] focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-300`}
-                    placeholder="ใจดี"
-                  />
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">อีเมล</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                    <input
+                      type="email"
+                      value={attendee.email || ''}
+                      onChange={(e) => handleAttendeeChange(index, 'email', e.target.value)}
+                      className={`w-full bg-slate-50 border-2 ${errors[`e${index}`] ? 'border-red-500' : 'border-slate-50'} rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:border-[#E4002B] focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-300`}
+                      placeholder="example@email.com"
+                    />
+                  </div>
+                  {errors[`e${index}`] && (
+                    <p className="text-xs text-red-500 font-bold">{errors[`e${index}`]}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">เบอร์โทรศัพท์</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      value={attendee.phone || ''}
+                      onChange={(e) => handleAttendeeChange(index, 'phone', e.target.value)}
+                      className={`w-full bg-slate-50 border-2 ${errors[`p${index}`] ? 'border-red-500' : 'border-slate-50'} rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:border-[#E4002B] focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-300`}
+                      placeholder="0812345678"
+                    />
+                  </div>
+                  {errors[`p${index}`] && (
+                    <p className="text-xs text-red-500 font-bold">{errors[`p${index}`]}</p>
+                  )}
                 </div>
               </div>
             </div>

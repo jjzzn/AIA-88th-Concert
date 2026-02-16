@@ -15,6 +15,8 @@ export interface BookingData {
     seatId: string;
     firstName: string;
     lastName: string;
+    email?: string;
+    phone?: string;
   }>;
   userType?: 'SELF' | 'AGENT' | null;
   agentInfo?: {
@@ -73,6 +75,8 @@ export const bookingService = {
         seat_id: seat.seatId,
         first_name: seat.firstName,
         last_name: seat.lastName,
+        email: seat.email,
+        phone: seat.phone,
         qr_token: generateQRToken(),
       }));
 
@@ -199,7 +203,7 @@ export const bookingService = {
             cancel_count,
             swap_count,
             original_seat_id,
-            seats (
+            seats!booking_seats_seat_id_fkey (
               id,
               row,
               number,
@@ -248,7 +252,7 @@ export const bookingService = {
               cancel_count,
               swap_count,
               original_seat_id,
-              seats (
+              seats!booking_seats_seat_id_fkey (
                 id,
                 row,
                 number,
@@ -301,7 +305,7 @@ export const bookingService = {
               cancel_count,
               swap_count,
               original_seat_id,
-              seats (
+              seats!booking_seats_seat_id_fkey (
                 id,
                 row,
                 number,

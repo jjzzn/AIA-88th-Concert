@@ -39,10 +39,17 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
         // Load zones from all tiers
         const zonesPromises = tiers.map(tier => seatService.getZonesByTier(tier.id));
         const zonesArrays = await Promise.all(zonesPromises);
-        const zones = zonesArrays.flat();
+        const allZonesFlat = zonesArrays.flat();
+        
+        // Deduplicate zones by zone.id
+        const uniqueZonesMap = new Map<string, Zone>();
+        allZonesFlat.forEach(zone => {
+          uniqueZonesMap.set(zone.id, zone);
+        });
+        const zones = Array.from(uniqueZonesMap.values());
         setAllZones(zones);
 
-        // Load seats from all zones
+        // Load seats from all zones (now deduplicated)
         const zoneIds = zones.map(z => z.id);
         const seats = await seatService.getSeatsByZones(zoneIds);
         setAllSeats(seats);
@@ -241,7 +248,7 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
                         
                         return (
                           <button
-                            key={zone.id}
+                            key={`${tier.id}-${zone.id}`}
                             onClick={() => setSelectedZone(zone)}
                             className="relative overflow-hidden group text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-lg transition-all active:scale-[0.98]"
                             style={{ borderColor: expandedTiers[tier.id] ? `${tier.color}20` : undefined }}
