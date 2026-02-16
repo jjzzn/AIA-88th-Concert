@@ -97,7 +97,7 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
     
     const availability = seatAvailability[seat.id];
     if (availability && availability.status === 'locked') {
-      setError('ที่นั่งนี้กำลังถูกเลือกโดยผู้ใช้อื่น');
+      alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
       return;
     }
     
@@ -336,10 +336,8 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
                           className={`
                             relative w-9 h-9 rounded-xl transition-all duration-300 transform flex items-center justify-center
                             text-[8px] font-black tracking-tighter
-                            ${seat.is_booked 
-                              ? 'bg-slate-50 border border-slate-100 text-slate-200 cursor-not-allowed' 
-                              : isLocked
-                                ? 'bg-yellow-400 text-yellow-900 cursor-not-allowed border border-yellow-500 opacity-75'
+                            ${seat.is_booked || isLocked
+                              ? 'bg-slate-400 border border-slate-300 text-slate-100 cursor-not-allowed' 
                               : isSelected 
                                 ? 'bg-[#E4002B] text-white ring-4 ring-red-100 scale-110 shadow-lg z-10' 
                                 : 'bg-slate-900 text-slate-400 hover:bg-slate-700 shadow-sm'}
@@ -369,11 +367,7 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
                 <span className="text-[10px] font-bold text-slate-500 uppercase">เลือก</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-md bg-yellow-400 border border-yellow-500" />
-                <span className="text-[10px] font-bold text-slate-500 uppercase">กำลังจอง</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-md bg-slate-100" />
+                <div className="w-3 h-3 rounded-md bg-slate-400" />
                 <span className="text-[10px] font-bold text-slate-500 uppercase">เต็ม</span>
               </div>
             </div>
