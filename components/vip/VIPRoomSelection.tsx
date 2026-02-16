@@ -33,10 +33,39 @@ const VIPRoomSelection: React.FC<Props> = ({ onSelectRoom }) => {
 
   return (
     <>
-      {/* Header */}
+      {/* Hero Banner / KV */}
+      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[32px] overflow-hidden mb-8 shadow-2xl">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+            backgroundSize: '40px 40px'
+          }} />
+        </div>
+        
+        {/* Content */}
+        <div className="relative px-8 py-12">
+          <div className="max-w-3xl">
+            <p className="text-[#E4002B] font-black text-xs uppercase tracking-[0.3em] mb-3">EXCLUSIVE EVENT</p>
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+              AIA 88th Anniversary Celebration
+            </h1>
+            <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
+              Experience world-class music in the comfort of our exclusive VIP suites. 
+              Secure your preferred room for the ultimate concert experience.
+            </p>
+          </div>
+        </div>
+        
+        {/* Decorative Element */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#E4002B] rounded-full blur-[120px] opacity-20" />
+      </div>
+
+      {/* Room Selection Header */}
       <div className="px-2 mb-8">
-        <p className="text-[10px] font-bold text-[#E4002B] uppercase tracking-wider mb-1">VIP BOOKING</p>
-        <h2 className="text-xl font-black text-slate-900 mb-4">เลือกห้อง VIP</h2>
+        <p className="text-[10px] font-bold text-[#E4002B] uppercase tracking-wider mb-1">VIP ROOM SELECTION</p>
+        <h2 className="text-xl font-black text-slate-900 mb-2">Select one of our 10 private suites to proceed with seat reservation</h2>
+        <p className="text-sm text-slate-500">เลือกห้อง VIP ที่ต้องการเพื่อดำเนินการจองที่นั่ง</p>
       </div>
 
       {/* Room Grid */}
