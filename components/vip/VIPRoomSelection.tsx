@@ -80,6 +80,22 @@ const VIPRoomSelection: React.FC<Props> = ({ onSelectRoom }) => {
               <div className="text-center mb-4">
                 <h3 className="text-lg font-black text-slate-900 mb-1">{room.name}</h3>
                 <p className="text-sm text-slate-500 font-bold">{room.capacity} ที่นั่ง</p>
+                
+                {/* Booking Status */}
+                <div className="mt-3">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Users className="w-4 h-4 text-slate-400" />
+                    <span className="text-xs font-bold text-slate-600">
+                      {room.bookedCount || 0}/{room.capacity}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-[#E4002B] h-full transition-all duration-500"
+                      style={{ width: `${((room.bookedCount || 0) / room.capacity) * 100}%` }}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Select Button */}

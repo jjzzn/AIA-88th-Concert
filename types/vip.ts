@@ -3,6 +3,7 @@ export interface VIPRoom {
   roomNumber: number;
   name: string;
   capacity: number;
+  bookedCount?: number;
   layout: SeatLayout;
 }
 

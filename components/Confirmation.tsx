@@ -1,10 +1,11 @@
 
 import React, { useRef, useState } from 'react';
 import { BookingState, Seat } from '../types';
-import { CheckCircle2, Download, Calendar, MapPin, Star, Settings } from 'lucide-react';
+import { CheckCircle2, Download, Calendar, MapPin, Star, Settings, RefreshCw, Trash2 } from 'lucide-react';
 import QRCode from './QRCode';
 import html2canvas from 'html2canvas';
-import TicketManagementModal from './TicketManagementModal';
+import CancelConfirmationModal from './CancelConfirmationModal';
+import SwapConfirmationModal from './SwapConfirmationModal';
 
 interface Props {
   state: BookingState;
@@ -18,6 +19,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
   const isSingleTicket = state.attendees.length === 1;
   const ticketRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [managingTicket, setManagingTicket] = useState<{ attendee: any; seat: any; index: number } | null>(null);
+  const [managementAction, setManagementAction] = useState<'cancel' | 'swap' | null>(null);
 
   const handleDownloadImage = async (index: number) => {
     const ticketElement = ticketRefs.current[index];
@@ -228,25 +230,50 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
 
                     {/* Manage Booking Button - Only show in popup mode (My Ticket) */}
                     {isPopup && !isCheckedIn && !(attendee as any).isCancelled && (
-                      <div className="pt-4 border-t border-slate-100">
+                      <div className="pt-4 border-t border-slate-100 space-y-2">
                         <button
-                          onClick={() => setManagingTicket({ 
-                            attendee: {
-                              ...attendee,
-                              bookingSeatId: (attendee as any).bookingSeatId,
-                              qrToken: qrToken,
-                              isCheckedIn: isCheckedIn,
-                              cancelCount: (attendee as any).cancelCount || 0,
-                              swapCount: (attendee as any).swapCount || 0,
-                              isCancelled: (attendee as any).isCancelled || false,
-                            }, 
-                            seat: seat, 
-                            index 
-                          })}
-                          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition active:scale-95"
+                          onClick={() => {
+                            setManagingTicket({ 
+                              attendee: {
+                                ...attendee,
+                                bookingSeatId: (attendee as any).bookingSeatId,
+                                isCheckedIn: (attendee as any).isCheckedIn,
+                                cancelCount: (attendee as any).cancelCount,
+                                swapCount: (attendee as any).swapCount,
+                                isCancelled: (attendee as any).isCancelled,
+                              },
+                              seat: seat!,
+                              index
+                            });
+                            setManagementAction('swap');
+                          }}
+                          disabled={(attendee as any).swapCount >= 1}
+                          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 text-blue-700 rounded-xl font-bold text-sm hover:bg-blue-100 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-blue-200"
                         >
                           <Settings className="w-4 h-4" />
-                          จัดการการจอง
+                          สลับที่นั่ง {(attendee as any).swapCount >= 1 && '(ใช้แล้ว)'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setManagingTicket({ 
+                              attendee: {
+                                ...attendee,
+                                bookingSeatId: (attendee as any).bookingSeatId,
+                                isCheckedIn: (attendee as any).isCheckedIn,
+                                cancelCount: (attendee as any).cancelCount,
+                                swapCount: (attendee as any).swapCount,
+                                isCancelled: (attendee as any).isCancelled,
+                              },
+                              seat: seat!,
+                              index
+                            });
+                            setManagementAction('cancel');
+                          }}
+                          disabled={(attendee as any).cancelCount >= 1}
+                          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-red-50 text-red-700 rounded-xl font-bold text-sm hover:bg-red-100 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200"
+                        >
+                          <Settings className="w-4 h-4" />
+                          ยกเลิกตั๋ว {(attendee as any).cancelCount >= 1 && '(ใช้แล้ว)'}
                         </button>
                       </div>
                     )}
@@ -309,16 +336,48 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
         </div>
       )}
 
-      {/* Ticket Management Modal */}
-      {managingTicket && (
-        <TicketManagementModal
+      {/* Cancel Confirmation Modal */}
+      {managingTicket && managementAction === 'cancel' && (
+        <CancelConfirmationModal
           isOpen={true}
-          onClose={() => setManagingTicket(null)}
+          onClose={() => {
+            setManagingTicket(null);
+            setManagementAction(null);
+          }}
           attendee={managingTicket.attendee}
           seat={managingTicket.seat}
           onSuccess={() => {
-            // Refresh the page to show updated data
-            window.location.reload();
+            // Force refresh by redirecting with timestamp to bypass cache
+            const urlParams = new URLSearchParams(window.location.search);
+            const phone = urlParams.get('phone');
+            if (phone) {
+              window.location.href = `/my-tickets?phone=${phone}&t=${Date.now()}`;
+            } else {
+              window.location.reload();
+            }
+          }}
+        />
+      )}
+
+      {/* Swap Confirmation Modal */}
+      {managingTicket && managementAction === 'swap' && (
+        <SwapConfirmationModal
+          isOpen={true}
+          onClose={() => {
+            setManagingTicket(null);
+            setManagementAction(null);
+          }}
+          attendee={managingTicket.attendee}
+          seat={managingTicket.seat}
+          onSuccess={() => {
+            // Force refresh by redirecting with timestamp to bypass cache
+            const urlParams = new URLSearchParams(window.location.search);
+            const phone = urlParams.get('phone');
+            if (phone) {
+              window.location.href = `/my-tickets?phone=${phone}&t=${Date.now()}`;
+            } else {
+              window.location.reload();
+            }
           }}
         />
       )}

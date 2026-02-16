@@ -67,6 +67,13 @@ export const bookingService = {
 
       if (bookingError || !booking) {
         console.error('Booking creation error:', bookingError);
+        
+        // Check for duplicate booking_number constraint violation
+        if (bookingError?.message?.includes('booking_number') || bookingError?.code === '23505') {
+          console.error('Duplicate booking_number detected - this may indicate a database trigger issue');
+          return { success: false, error: 'เกิดข้อผิดพลาดในการสร้างหมายเลขการจอง กรุณาลองอีกครั้ง' };
+        }
+        
         return { success: false, error: bookingError?.message || 'Failed to create booking' };
       }
 
