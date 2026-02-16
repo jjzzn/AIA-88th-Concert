@@ -131,18 +131,28 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
                   className="bg-white rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-slate-50 overflow-hidden h-full flex flex-col"
                 >
                   {/* Tier Header Banner */}
-                  <div 
-                    className="px-6 py-3.5 flex justify-between items-center text-white"
-                    style={{ backgroundColor: tierColor }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 fill-white/20" />
-                      <span className="text-xs font-black tracking-widest uppercase">{tierName}</span>
+                  {/* Hide tier display for PT and GD codes */}
+                  {state.selectedTier?.id !== 'PT' && state.selectedTier?.id !== 'GD' && (
+                    <div 
+                      className="px-6 py-3.5 flex justify-between items-center text-white"
+                      style={{ backgroundColor: tierColor }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 fill-white/20" />
+                        <span className="text-xs font-black tracking-widest uppercase">{tierName}</span>
+                      </div>
+                      <span className="text-[10px] font-bold opacity-70 uppercase tracking-tighter">
+                        TICKET {index + 1}/{state.attendees.length}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold opacity-70 uppercase tracking-tighter">
-                      TICKET {index + 1}/{state.attendees.length}
-                    </span>
-                  </div>
+                  )}
+                  {state.selectedTier?.id === 'PT' || state.selectedTier?.id === 'GD' ? (
+                    <div className="px-6 py-3.5 flex justify-end items-center bg-slate-100">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">
+                        TICKET {index + 1}/{state.attendees.length}
+                      </span>
+                    </div>
+                  ) : null}
 
                   <div className="p-7 space-y-6 flex-1">
                     {/* Attendee Name at Top */}

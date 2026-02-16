@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ContactInfo } from '../types';
-import { User, Phone, ChevronRight } from 'lucide-react';
+import { User, Phone, ArrowLeft } from 'lucide-react';
 
 interface Props {
   onSubmit: (contact: ContactInfo) => void;
@@ -62,119 +62,90 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#E4002B] to-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <User className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-black text-slate-900 mb-3">
-            ข้อมูลผู้จอง
-          </h1>
-          <p className="text-slate-600 text-lg">
-            กรุณากรอกชื่อและเบอร์โทรศัพท์ของคุณ
-          </p>
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white rounded-[32px] shadow-xl p-8 md:p-12">
-          <div className="space-y-6">
-            {/* First Name */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                ชื่อ <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => handleFirstNameChange(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-4 bg-slate-50 border-2 ${
-                    errors.firstName ? 'border-red-500' : 'border-slate-50'
-                  } rounded-2xl text-lg font-medium text-slate-900 focus:border-[#E4002B] focus:bg-white outline-none transition placeholder:text-slate-300`}
-                  placeholder="กรอกชื่อ"
-                />
-              </div>
-              {errors.firstName && (
-                <p className="text-xs text-red-500 font-bold mt-2">{errors.firstName}</p>
-              )}
-            </div>
-
-            {/* Last Name */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                นามสกุล <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => handleLastNameChange(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-4 bg-slate-50 border-2 ${
-                    errors.lastName ? 'border-red-500' : 'border-slate-50'
-                  } rounded-2xl text-lg font-medium text-slate-900 focus:border-[#E4002B] focus:bg-white outline-none transition placeholder:text-slate-300`}
-                  placeholder="กรอกนามสกุล"
-                />
-              </div>
-              {errors.lastName && (
-                <p className="text-xs text-red-500 font-bold mt-2">{errors.lastName}</p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                เบอร์โทรศัพท์ <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-4 bg-slate-50 border-2 ${
-                    errors.phone ? 'border-red-500' : 'border-slate-50'
-                  } rounded-2xl text-lg font-medium text-slate-900 focus:border-[#E4002B] focus:bg-white outline-none transition placeholder:text-slate-300`}
-                  placeholder="0812345678"
-                  maxLength={10}
-                />
-              </div>
-              {errors.phone && (
-                <p className="text-xs text-red-500 font-bold mt-2">{errors.phone}</p>
-              )}
-              <p className="text-xs text-slate-500 mt-2">
-                เบอร์โทรศัพท์นี้จะใช้สำหรับติดต่อและค้นหาตั๋ว
-              </p>
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-4 mt-8">
-            <button
-              onClick={onBack}
-              className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[20px] font-black text-lg transition"
-            >
-              ย้อนกลับ
-            </button>
-            <button
-              onClick={handleSubmit}
-              className="flex-1 py-4 bg-gradient-to-r from-[#E4002B] to-red-600 hover:from-red-600 hover:to-[#E4002B] text-white rounded-[20px] font-black text-lg flex items-center justify-center gap-3 shadow-lg transition"
-            >
-              <span>ถัดไป</span>
-              <ChevronRight className="w-6 h-6" />
-            </button>
+    <div className="px-4 py-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* AIA Logo and Title */}
+      <div className="text-center space-y-6 pt-4">
+        <div className="flex justify-center">
+          <div className="w-16 h-16 bg-[#E4002B] rounded-lg flex items-center justify-center">
+            <span className="text-white text-2xl font-black">88th</span>
           </div>
         </div>
+        
+        <h1 className="text-3xl font-normal text-[#E4002B] tracking-wide">
+          88th Year Concert
+        </h1>
+      </div>
 
-        {/* Info Box */}
-        <div className="mt-6 bg-amber-50 border-2 border-amber-200 rounded-2xl p-4">
-          <p className="text-sm text-amber-900 font-medium text-center">
-            💡 ข้อมูลนี้จะใช้สำหรับติดต่อและค้นหาตั๋วของคุณ
-          </p>
+      {/* User Entry Section */}
+      <div className="text-center space-y-4">
+        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto border border-slate-100">
+          <User className="w-8 h-8 text-slate-400" />
         </div>
+        <h2 className="text-xl font-black text-slate-900">ข้อมูลผู้จอง</h2>
+        <p className="text-slate-500 text-sm">กรุณากรอกชื่อและเบอร์โทรศัพท์ของคุณ</p>
+      </div>
+
+      <div className="space-y-4">
+        {/* First Name */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            ชื่อ
+          </label>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => handleFirstNameChange(e.target.value)}
+            placeholder="กรอกชื่อ"
+            className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+          />
+          {errors.firstName && (
+            <p className="text-xs text-red-500 font-bold mt-2">{errors.firstName}</p>
+          )}
+        </div>
+
+        {/* Last Name */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            นามสกุล
+          </label>
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => handleLastNameChange(e.target.value)}
+            placeholder="กรอกนามสกุล"
+            className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+          />
+          {errors.lastName && (
+            <p className="text-xs text-red-500 font-bold mt-2">{errors.lastName}</p>
+          )}
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            เบอร์โทรศัพท์
+          </label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            placeholder="0812345678"
+            maxLength={10}
+            className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+          />
+          {errors.phone && (
+            <p className="text-xs text-red-500 font-bold mt-2">{errors.phone}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="pt-4">
+        <button
+          onClick={handleSubmit}
+          className="w-full py-5 bg-[#E4002B] text-white rounded-2xl font-black text-lg shadow-xl shadow-red-500/25 hover:bg-red-700 active:scale-[0.98] transition"
+        >
+          ถัดไป
+        </button>
       </div>
     </div>
   );

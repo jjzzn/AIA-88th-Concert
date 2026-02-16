@@ -114,11 +114,14 @@ const MyTicketsPage: React.FC = () => {
                 
                 return sortedTierIds.map((tierId) => (
                   <div key={tierId} className="space-y-3">
-                    <div className="px-4 py-2 bg-slate-100 rounded-xl">
-                      <p className="text-sm font-black text-slate-700 uppercase tracking-wider">
-                        {tierInfo[tierId].name}
-                      </p>
-                    </div>
+                    {/* Hide tier name for PT and GD codes */}
+                    {tierId !== 'PT' && tierId !== 'GD' && (
+                      <div className="px-4 py-2 bg-slate-100 rounded-xl">
+                        <p className="text-sm font-black text-slate-700 uppercase tracking-wider">
+                          {tierInfo[tierId].name}
+                        </p>
+                      </div>
+                    )}
                     
                     {bookingsByTier[tierId].map((booking: any) => {
                       // Filter out cancelled seats

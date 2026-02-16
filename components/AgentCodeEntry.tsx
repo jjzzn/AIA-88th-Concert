@@ -10,7 +10,18 @@ interface Props {
 const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
   const [agentCode, setAgentCode] = useState('');
   const [agentName, setAgentName] = useState('');
+  const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const handleAgentCodeChange = (value: string) => {
+    const filtered = value.replace(/\D/g, '');
+    setAgentCode(filtered);
+  };
+
+  const handlePhoneChange = (value: string) => {
+    const filtered = value.replace(/\D/g, '').slice(0, 10);
+    setPhone(filtered);
+  };
 
   const handleSubmit = () => {
     setError(null);
@@ -22,6 +33,11 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
 
     if (!agentName.trim()) {
       setError('กรุณากรอกชื่อตัวแทน');
+      return;
+    }
+
+    if (!phone || phone.length !== 10) {
+      setError('กรุณากรอกเบอร์โทรศัพท์ 10 หลัก');
       return;
     }
 
@@ -66,7 +82,7 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
           <input
             type="text"
             value={agentCode}
-            onChange={(e) => setAgentCode(e.target.value)}
+            onChange={(e) => handleAgentCodeChange(e.target.value)}
             placeholder="กรอกรหัสตัวแทน"
             className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
           />
@@ -82,6 +98,21 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
             value={agentName}
             onChange={(e) => setAgentName(e.target.value)}
             placeholder="กรอกชื่อตัวแทน"
+            className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+          />
+        </div>
+
+        {/* Phone Input */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            เบอร์โทรศัพท์
+          </label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            placeholder="0812345678"
+            maxLength={10}
             className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
           />
         </div>
