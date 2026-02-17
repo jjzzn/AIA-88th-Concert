@@ -4,6 +4,7 @@ import { Star, Loader2, ChevronDown, ChevronUp, Users, ArrowLeft, ChevronRight, 
 import { seatService } from '../lib/services';
 import { tierService } from '../lib/services';
 import { seatLockService, SeatAvailability } from '../lib/services/seatLockService';
+import { supabase } from '../lib/supabase';
 
 interface Props {
   onSubmit: (seats: Seat[]) => void;
@@ -64,20 +65,49 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
     loadAllData();
   }, []);
 
-  // Check seat availability
+  // Check seat availability with realtime updates
   useEffect(() => {
     const checkAvailabilityStatus = async () => {
       if (allSeats.length === 0) return;
       
       const seatIds = allSeats.map(s => s.id);
       const availability = await seatLockService.checkAvailability(seatIds);
-      setSeatAvailability(availability);
+      
+      const availabilityMap: Record<string, SeatAvailability> = {};
+      availability.forEach(avail => {
+        availabilityMap[avail.seatId] = avail;
+      });
+      
+      setSeatAvailability(availabilityMap);
     };
 
     checkAvailabilityStatus();
+    
+    // Set up realtime subscription for seats table
+    const channel = supabase
+      .channel('agent-seat-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'seats',
+          filter: selectedZone ? `zone_id=eq.${selectedZone.id}` : undefined
+        },
+        (payload) => {
+          console.log('🔄 Real-time seat change (Agent):', payload);
+          checkAvailabilityStatus();
+        }
+      )
+      .subscribe();
+    
     const interval = setInterval(checkAvailabilityStatus, 5000);
-    return () => clearInterval(interval);
-  }, [allSeats]);
+    
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [allSeats, selectedZone]);
 
   const availableSeats = useMemo(() => {
     if (!selectedZone) return [];
@@ -92,7 +122,7 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
     });
   }, [allSeats, selectedZone, seatAvailability]);
 
-  const handleSeatClick = (seat: Seat) => {
+  const handleSeatClick = async (seat: Seat) => {
     if (seat.is_booked) return;
     
     const availability = seatAvailability[seat.id];
@@ -104,8 +134,23 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
     setError(null);
     
     if (selectedSeatIds.includes(seat.id)) {
+      // Unlock seat when deselecting
+      await seatLockService.unlockSeats([seat.id]);
       setSelectedSeatIds(selectedSeatIds.filter(id => id !== seat.id));
     } else {
+      // Lock seat immediately when selecting
+      const lockResult = await seatLockService.lockSeats([seat.id], 5);
+      
+      if (!lockResult.success) {
+        // Seat is already locked or booked
+        if (lockResult.alreadyLocked.length > 0) {
+          alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+        } else if (lockResult.alreadyBooked.length > 0) {
+          alert('ที่นั่งนี้ถูกจองแล้ว');
+        }
+        return;
+      }
+      
       setSelectedSeatIds([...selectedSeatIds, seat.id]);
     }
   };
