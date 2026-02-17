@@ -107,6 +107,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
             const qrToken = (attendee as any).qrToken || (seat as any)?.qr_token || `AIA-${Math.floor(100000 + Math.random() * 900000)}`;
             const isCheckedIn = (attendee as any).isCheckedIn || false;
             const checkedInAt = (attendee as any).checkedInAt;
+            const isCancelled = (attendee as any).isCancelled || false;
             
             // Debug logging
             console.log('Confirmation - Attendee:', index, {
@@ -166,7 +167,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
 
                     {/* QR Code Area - Clean & Centered */}
                     <div className="flex justify-center py-2">
-                      <div className={`p-6 bg-[#F8FAFC] rounded-[40px] border border-slate-100 shadow-[inset_0_2px_8px_rgba(0,0,0,0.03)] relative ${isCheckedIn ? 'opacity-60' : ''}`}>
+                      <div className={`p-6 bg-[#F8FAFC] rounded-[40px] border border-slate-100 shadow-[inset_0_2px_8px_rgba(0,0,0,0.03)] relative ${isCheckedIn || isCancelled ? 'opacity-60' : ''}`}>
                         {isCheckedIn && (
                           <>
                             {/* Semi-transparent overlay */}
@@ -194,12 +195,30 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
                             )}
                           </>
                         )}
+                        {isCancelled && (
+                          <>
+                            {/* Semi-transparent overlay */}
+                            <div className="absolute inset-0 bg-white/40 rounded-[40px] z-10" />
+                            
+                            {/* Grey stamp overlay for cancelled */}
+                            <div className="absolute inset-0 flex items-center justify-center z-20">
+                              <div className="relative">
+                                {/* Grey diagonal stamp */}
+                                <div className="bg-slate-700 text-white px-8 py-3 transform -rotate-12 border-4 border-slate-700 shadow-lg">
+                                  <p className="text-xl font-black uppercase tracking-wider whitespace-nowrap">
+                                    ยกเลิกแล้ว (CANCELLED)
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
                         <QRCode 
                           value={qrToken}
                           size={160}
                           className="rounded-lg"
                         />
-                        <p className="text-[11px] text-center text-slate-600 font-mono mt-3 tracking-wide font-bold">
+                        <p className={`text-[11px] text-center text-slate-600 font-mono mt-3 tracking-wide font-bold ${isCancelled ? 'line-through' : ''}`}>
                           {qrToken}
                         </p>
                       </div>
