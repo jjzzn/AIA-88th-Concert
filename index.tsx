@@ -6,6 +6,9 @@ import AdminPage from './pages/admin';
 import SeatSwapPage from './pages/seat-swap';
 import VIPBookingPage from './pages/vip-booking';
 import MyTicketsPage from './pages/my-tickets';
+import AdminManagePage from './pages/admin-manage';
+import AdminSeatSwapPage from './pages/admin-seat-swap';
+import AdminCancelPage from './pages/admin-cancel';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -40,7 +43,22 @@ const Router: React.FC = () => {
     return <AdminPage />;
   }
 
-  // Check if path is /admin/seat-swap
+  // Check if path is /admin/manage/seat-swap
+  if (currentPath === '/admin/manage/seat-swap' || currentPath === '/admin/manage/seat-swap/') {
+    return <AdminSeatSwapPage />;
+  }
+
+  // Check if path is /admin/manage/cancel
+  if (currentPath === '/admin/manage/cancel' || currentPath === '/admin/manage/cancel/') {
+    return <AdminCancelPage />;
+  }
+
+  // Check if path is /admin/manage
+  if (currentPath === '/admin/manage' || currentPath === '/admin/manage/') {
+    return <AdminManagePage />;
+  }
+
+  // Check if path is /admin/seat-swap (legacy path, redirect to new path)
   if (currentPath === '/admin/seat-swap' || currentPath === '/admin/seat-swap/') {
     return <SeatSwapPage />;
   }
