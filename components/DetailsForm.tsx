@@ -79,13 +79,6 @@ const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining, bookerIn
       }
     });
 
-    if (!contact.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) {
-      newErrors.email = 'กรุณากรอกอีเมลที่ถูกต้อง';
-    }
-    if (!contact.phone || contact.phone.length !== 10) {
-      newErrors.phone = 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก';
-    }
-
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
       setIsSubmitting(true);
@@ -108,6 +101,20 @@ const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining, bookerIn
           <div className="flex-1 bg-slate-100 rounded-full" />
         </div>
       </div>
+
+      {bookerInfo?.firstName && bookerInfo?.lastName && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-5 rounded-[24px] mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center">
+              <User className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-blue-600 uppercase tracking-wider mb-1">ชื่อผู้ใช้สิทธิ์</p>
+              <p className="text-lg font-black text-slate-900">{bookerInfo.firstName} {bookerInfo.lastName}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-1">
         <h2 className="text-2xl font-bold text-slate-900">ระบุข้อมูลของคุณ</h2>
@@ -207,41 +214,7 @@ const DetailsForm: React.FC<Props> = ({ seats, onSubmit, timeRemaining, bookerIn
         })}
       </div>
 
-      <div className="space-y-4 pt-4">
-        <div className="flex items-center gap-3 mb-2 px-2">
-          <div className="w-10 h-10 bg-red-50 rounded-2xl flex items-center justify-center border border-red-100">
-            <User className="w-5 h-5 text-[#E4002B]" />
-          </div>
-          <h3 className="font-black text-slate-800 tracking-tight">ข้อมูลผู้ติดต่อ (สำหรับการรับตั๋ว)</h3>
-        </div>
-
-        <div className="space-y-4 px-2">
-          <div className="relative">
-            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-            <input
-              type="email"
-              value={contact.email}
-              onChange={(e) => handleContactChange('email', e.target.value)}
-              className={`w-full bg-slate-50 border-2 ${errors.email ? 'border-red-500' : 'border-slate-50'} rounded-[24px] pl-14 pr-6 py-5 text-sm font-bold focus:border-[#E4002B] focus:bg-white outline-none transition text-slate-900`}
-              placeholder="อีเมล (ภาษาอังกฤษ)"
-            />
-          </div>
-          <div className="relative">
-            <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-            <input
-              type="tel"
-              inputMode="numeric"
-              maxLength={10}
-              value={contact.phone}
-              onChange={(e) => handleContactChange('phone', e.target.value)}
-              className={`w-full bg-slate-50 border-2 ${errors.phone ? 'border-red-500' : 'border-slate-50'} rounded-[24px] pl-14 pr-6 py-5 text-sm font-bold focus:border-[#E4002B] focus:bg-white outline-none transition text-slate-900`}
-              placeholder="เบอร์โทรศัพท์ (10 หลัก)"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="px-2 pt-4">
+      <div className="px-2 pt-6">
         <button
           onClick={validate}
           disabled={isSubmitting}

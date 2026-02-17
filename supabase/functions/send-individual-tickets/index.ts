@@ -184,7 +184,7 @@ serve(async (req) => {
                     <table style="width: 100%; font-size: 14px;">
                       <tr>
                         <td style="padding-bottom: 8px; color: #6B7280;">Booking ID</td>
-                        <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">${booking.id}</td>
+                        <td style="padding-bottom: 8px; text-align: right; font-weight: 600; color: #111827;">${seat.qr_token}</td>
                       </tr>
                       <tr>
                         <td style="padding-bottom: 8px; color: #6B7280;">Attendee</td>
