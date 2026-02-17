@@ -283,8 +283,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   <div>
                     <p className="text-sm font-black text-blue-900 mb-2">ข้อมูลการเปลี่ยนแปลงที่นั่ง</p>
                     <p className="text-sm text-blue-700 font-medium leading-relaxed">
-                      คุณสามารถเลือกที่นั่งว่างในโซน <strong>{seat.zones?.name || 'ZONE A1'}</strong> เท่านั้น 
-                      เมื่อเปลี่ยนแล้วที่นั่งเก่าจะกลับเข้าระบบ
+                      กรุณาตรวจสอบให้แน่ใจก่อนยืนยัน ท่านมีสิทธิ์เปลี่ยนที่นั่งได้เพียง 1 ครั้ง เท่านั้น
                     </p>
                   </div>
                 </div>
