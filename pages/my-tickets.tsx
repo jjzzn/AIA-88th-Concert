@@ -61,15 +61,10 @@ const MyTicketsPage: React.FC = () => {
     return levelMap[tierId] || 99;
   };
 
-  // Check if there are any active (non-cancelled) bookings
-  const hasActiveBookings = allBookings.some((booking: any) => 
-    booking.booking_seats?.some((bs: any) => !bs.is_cancelled)
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-4xl mx-auto px-6 py-8">
-        {allBookings.length > 0 && !viewingTicket && hasActiveBookings ? (
+        {allBookings.length > 0 && !viewingTicket ? (
           // Bookings List
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
             <div className="flex items-center justify-between">
@@ -115,13 +110,13 @@ const MyTicketsPage: React.FC = () => {
                 return sortedTierIds.map((tierId) => (
                   <div key={tierId} className="space-y-3">
                     {bookingsByTier[tierId].map((booking: any) => {
-                      // Filter out cancelled seats
-                      const activeSeats = booking.booking_seats?.filter((bs: any) => !bs.is_cancelled) || [];
+                      // Show ALL seats including cancelled ones
+                      const allSeats = booking.booking_seats || [];
                       
-                      // Skip this booking if all seats are cancelled
-                      if (activeSeats.length === 0) return null;
+                      // Skip this booking if no seats at all
+                      if (allSeats.length === 0) return null;
                       
-                      const seatCount = activeSeats.length;
+                      const seatCount = allSeats.length;
                       const bookingDate = new Date(booking.created_at).toLocaleDateString('th-TH', {
                         year: 'numeric',
                         month: 'short',
@@ -132,7 +127,7 @@ const MyTicketsPage: React.FC = () => {
                         <button
                           key={booking.id}
                           onClick={() => {
-                            const attendees = activeSeats.map((bs: any) => ({
+                            const attendees = allSeats.map((bs: any) => ({
                               firstName: bs.first_name,
                               lastName: bs.last_name,
                               seatId: bs.seat_id,
@@ -145,7 +140,7 @@ const MyTicketsPage: React.FC = () => {
                               isCancelled: bs.is_cancelled || false,
                             })) || [];
 
-                            const seats = activeSeats.map((bs: any) => ({
+                            const seats = allSeats.map((bs: any) => ({
                               id: bs.seats.id,
                               row: bs.seats.row,
                               number: bs.seats.number,
@@ -218,30 +213,6 @@ const MyTicketsPage: React.FC = () => {
               </button>
             </div>
             <Confirmation state={viewingTicket} onReset={resetSearch} isPopup={true} />
-          </div>
-        ) : allBookings.length > 0 && !hasActiveBookings ? (
-          // No Active Bookings (All Cancelled)
-          <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-[40px] shadow-2xl p-10 space-y-6 animate-in fade-in zoom-in-95 duration-500 text-center">
-              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto border-2 border-red-200">
-                <Ticket className="w-10 h-10 text-red-400" />
-              </div>
-              
-              <div className="space-y-2">
-                <h1 className="text-3xl font-black text-slate-900">ไม่พบการจอง</h1>
-                <p className="text-sm font-medium text-slate-500">
-                  ตั๋วทั้งหมดของเบอร์นี้ถูกยกเลิกแล้ว
-                </p>
-              </div>
-
-              <button
-                onClick={resetSearch}
-                className="w-full py-5 bg-[#0F172A] text-white rounded-[24px] font-bold text-lg flex items-center justify-center gap-3 hover:bg-slate-800 active:scale-[0.98] transition shadow-lg shadow-slate-200"
-              >
-                <Search className="w-5 h-5" />
-                <span>ค้นหาใหม่</span>
-              </button>
-            </div>
           </div>
         ) : null}
 
