@@ -23,7 +23,8 @@ export interface BookingData {
   userType?: 'SELF' | 'AGENT' | null;
   agentInfo?: {
     agentCode: string;
-    agentName: string;
+    agentFirstName: string;
+    agentLastName: string;
   } | null;
 }
 
@@ -62,7 +63,7 @@ export const bookingService = {
           status: 'confirmed',
           user_type: bookingData.userType || null,
           agent_code: bookingData.agentInfo?.agentCode || null,
-          agent_name: bookingData.agentInfo?.agentName || null,
+          agent_name: bookingData.agentInfo ? `${bookingData.agentInfo.agentFirstName} ${bookingData.agentInfo.agentLastName}` : null,
         })
         .select()
         .single();

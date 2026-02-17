@@ -150,33 +150,167 @@ export const ticketManagementService = {
   },
 
   /**
-   * Get available seats in the same zone for swapping
+   * Get allowed zones for swapping based on user's tier
+   */
+  async getAllowedZonesForSwap(tierId: string): Promise<string[]> {
+    try {
+      console.log('getAllowedZonesForSwap called for tier:', tierId);
+      
+      // PLATINUM and GOLD: Can swap to ALL zones (Level 1, 2, 3)
+      if (tierId === 'PT' || tierId === 'GD') {
+        console.log('Fetching ALL zones for PLATINUM/GOLD');
+        
+        const { data, error } = await supabase
+          .from('zones')
+          .select('id, name, tier_id');
+        
+        if (error) {
+          console.error('Error fetching zones:', error);
+          throw error;
+        }
+        
+        console.log('Zones fetched from database:', data?.length, 'zones');
+        const zoneIds = data?.map(z => z.id) || [];
+        console.log('Zone IDs to use:', zoneIds.length, 'zones');
+        
+        return zoneIds;
+      }
+      
+      // SILVER: Can swap to Level 2 (S*) and Level 3 (L*) zones only
+      if (tierId === 'SV') {
+        const { data, error } = await supabase
+          .from('zones')
+          .select('id, code')
+          .in('tier_id', ['SV', 'CL']); // SV = Level 2, CL = Level 3
+        
+        if (error) throw error;
+        
+        // Filter to only S* and L* zones
+        return data?.filter(z => {
+          const code = z.code || z.id;
+          return code.startsWith('S') || code.startsWith('L');
+        }).map(z => z.id) || [];
+      }
+      
+      // Other tiers: Only same tier
+      const { data, error } = await supabase
+        .from('zones')
+        .select('id')
+        .eq('tier_id', tierId);
+      
+      if (error) throw error;
+      return data?.map(z => z.id) || [];
+    } catch (error) {
+      console.error('Error getting allowed zones:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Get available seats for swapping based on allowed zones (not tier)
    */
   async getAvailableSeatsForSwap(params: AvailableSeatsParams) {
     try {
-      const { data, error } = await supabase
-        .from('seats')
-        .select(`
-          id,
-          row,
-          number,
-          tier_id,
-          zone_id,
-          is_booked,
-          zones (
-            id,
-            name
-          )
-        `)
-        .eq('tier_id', params.tierId)
-        .eq('zone_id', params.zoneId)
-        .eq('is_booked', false)
-        .order('row')
-        .order('number');
-
-      if (error) {
-        console.error('Error fetching available seats:', error);
+      console.log('getAvailableSeatsForSwap called with:', params);
+      
+      // Get all zones that user can swap to based on their tier
+      const allowedZones = await this.getAllowedZonesForSwap(params.tierId);
+      console.log('Allowed zones for tier', params.tierId, ':', allowedZones);
+      
+      if (allowedZones.length === 0) {
+        console.log('No allowed zones found');
         return [];
+      }
+      
+      // Check if seats exist in allowed zones (debug)
+      console.log('Querying seats with zone_id IN:', allowedZones);
+      
+      const { data: allSeatsInZones, error: debugError } = await supabase
+        .from('seats')
+        .select('zone_id, is_booked')
+        .in('zone_id', allowedZones);
+      
+      if (debugError) {
+        console.error('Error fetching zone stats:', debugError);
+      }
+      
+      console.log('Total seats found in query:', allSeatsInZones?.length || 0);
+      
+      if (allSeatsInZones) {
+        const zoneStats = allSeatsInZones.reduce((acc, s) => {
+          if (!acc[s.zone_id]) acc[s.zone_id] = { total: 0, available: 0 };
+          acc[s.zone_id].total++;
+          if (!s.is_booked) acc[s.zone_id].available++;
+          return acc;
+        }, {} as Record<string, {total: number, available: number}>);
+        console.log('Zone statistics:', zoneStats);
+        console.log('Zones with available seats:', Object.keys(zoneStats).filter(z => zoneStats[z].available > 0));
+      }
+      
+      // Fetch seats from allowed zones with pagination (to bypass 1000 row limit)
+      let allSeats: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error, count } = await supabase
+          .from('seats')
+          .select(`
+            id,
+            row,
+            number,
+            tier_id,
+            zone_id,
+            is_booked,
+            zones (
+              id,
+              name
+            )
+          `, { count: 'exact' })
+          .in('zone_id', allowedZones)
+          .order('zone_id')
+          .order('row')
+          .order('number')
+          .range(from, from + pageSize - 1);
+
+        if (error) {
+          console.error('Error fetching available seats:', error);
+          return [];
+        }
+
+        if (data && data.length > 0) {
+          allSeats = [...allSeats, ...data];
+          from += pageSize;
+          
+          console.log(`Fetched ${allSeats.length} seats so far (page size: ${data.length})...`);
+          
+          // Check if we've fetched all seats
+          if (count && allSeats.length >= count) {
+            hasMore = false;
+          } else if (data.length < pageSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      const data = allSeats;
+
+      console.log('getAvailableSeatsForSwap result:', data?.length || 0, 'seats found');
+      if (data && data.length > 0) {
+        const uniqueZones = [...new Set(data.map(s => s.zone_id))];
+        console.log('Zones in results:', [...new Set(data.map(s => s.zones?.name))]);
+        console.log('Zone IDs in results:', uniqueZones);
+        console.log('Tier IDs in results:', [...new Set(data.map(s => s.tier_id))]);
+        
+        // Count seats per zone
+        const zoneCounts = data.reduce((acc, s) => {
+          acc[s.zone_id] = (acc[s.zone_id] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        console.log('Seats per zone:', zoneCounts);
       }
 
       return data || [];
@@ -229,16 +363,28 @@ export const ticketManagementService = {
         return { success: false, error: 'ที่นั่งนี้ถูกจองแล้ว กรุณาเลือกที่นั่งอื่น' };
       }
 
-      // Verify seats are in same tier and zone
+      // Verify swap is allowed based on user's tier
       const { data: currentSeat } = await supabase
         .from('seats')
         .select('tier_id, zone_id')
         .eq('id', params.currentSeatId)
         .single();
 
-      if (!currentSeat || currentSeat.tier_id !== newSeat.tier_id || currentSeat.zone_id !== newSeat.zone_id) {
-        return { success: false, error: 'ที่นั่งใหม่ต้องอยู่ในโซนเดียวกัน' };
+      if (!currentSeat) {
+        return { success: false, error: 'ไม่พบข้อมูลที่นั่งปัจจุบัน' };
       }
+
+      // PLATINUM and GOLD: Can swap to ANY zone (no tier restriction)
+      const isPlatinumOrGold = currentSeat.tier_id === 'PT' || currentSeat.tier_id === 'GD';
+      
+      if (!isPlatinumOrGold) {
+        // For other tiers (SILVER, etc.): Must be same tier
+        if (currentSeat.tier_id !== newSeat.tier_id) {
+          return { success: false, error: 'ที่นั่งใหม่ต้องอยู่ใน tier เดียวกัน' };
+        }
+      }
+      
+      // If PLATINUM or GOLD, allow any tier (no validation needed)
 
       // Perform swap: Update booking_seat with new seat
       const { error: updateError } = await supabase

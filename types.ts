@@ -47,7 +47,8 @@ export interface ContactInfo {
 
 export interface AgentInfo {
   agentCode: string;
-  agentName: string;
+  agentFirstName: string;
+  agentLastName: string;
 }
 
 export interface BookingState {

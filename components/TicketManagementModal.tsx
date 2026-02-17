@@ -77,13 +77,13 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
 
     const seats = await ticketManagementService.getAvailableSeatsForSwap({
       tierId: seat.tier_id,
-      zoneId: seat.zone_id,
+      zoneId: seat.zone_id, // Still pass for reference, but query will return all zones in tier
     });
 
     setIsProcessing(false);
 
     if (seats.length === 0) {
-      setError('ไม่มีที่นั่งว่างในโซนนี้');
+      setError('ไม่มีที่นั่งว่างใน tier นี้');
       return;
     }
 
@@ -253,7 +253,7 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                         ? 'ไม่สามารถสลับที่นั่งที่เช็คอินแล้ว'
                         : !canSwap
                           ? `ใช้งานแล้ว ${attendee.swapCount || 0}/1 ครั้ง`
-                          : 'เปลี่ยนที่นั่งในโซนเดียวกัน (ใช้ได้ 1 ครั้ง)'
+                          : 'เปลี่ยนที่นั่งใน tier เดียวกัน (ใช้ได้ 1 ครั้ง)'
                       }
                     </p>
                   </div>
@@ -313,7 +313,7 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   <div>
                     <p className="text-sm font-black text-blue-900 mb-2">ข้อมูลการสลับที่นั่ง</p>
                     <p className="text-sm text-blue-700 font-medium leading-relaxed">
-                      คุณสามารถเลือกที่นั่งว่างในโซน <strong>{seat.zones?.name || 'เดียวกัน'}</strong> เท่านั้น 
+                      คุณสามารถเลือกที่นั่งว่าง<strong>ทุกโซนภายใน tier เดียวกัน</strong> 
                       เมื่อสลับแล้วที่นั่งเก่าจะกลับเข้าระบบ
                     </p>
                   </div>

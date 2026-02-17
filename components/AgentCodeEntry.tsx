@@ -9,7 +9,8 @@ interface Props {
 
 const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
   const [agentCode, setAgentCode] = useState('');
-  const [agentName, setAgentName] = useState('');
+  const [agentFirstName, setAgentFirstName] = useState('');
+  const [agentLastName, setAgentLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +32,13 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
       return;
     }
 
-    if (!agentName.trim()) {
-      setError('กรุณากรอกชื่อตัวแทน');
+    if (!agentFirstName.trim()) {
+      setError('กรุณากรอกชื่อ');
+      return;
+    }
+
+    if (!agentLastName.trim()) {
+      setError('กรุณากรอกนามสกุล');
       return;
     }
 
@@ -43,7 +49,8 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
 
     onSubmit({
       agentCode: agentCode.trim(),
-      agentName: agentName.trim(),
+      agentFirstName: agentFirstName.trim(),
+      agentLastName: agentLastName.trim(),
     });
   };
 
@@ -74,6 +81,34 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
       </div>
 
       <div className="space-y-4">
+        {/* Agent First Name Input */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            ชื่อ
+          </label>
+          <input
+            type="text"
+            value={agentFirstName}
+            onChange={(e) => setAgentFirstName(e.target.value)}
+            placeholder="กรอกชื่อ"
+            className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+          />
+        </div>
+
+        {/* Agent Last Name Input */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            นามสกุล
+          </label>
+          <input
+            type="text"
+            value={agentLastName}
+            onChange={(e) => setAgentLastName(e.target.value)}
+            placeholder="กรอกนามสกุล"
+            className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+          />
+        </div>
+
         {/* Agent Code Input */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
@@ -84,20 +119,6 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
             value={agentCode}
             onChange={(e) => handleAgentCodeChange(e.target.value)}
             placeholder="กรอกรหัสตัวแทน"
-            className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
-          />
-        </div>
-
-        {/* Agent Name Input */}
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">
-            ชื่อตัวแทน
-          </label>
-          <input
-            type="text"
-            value={agentName}
-            onChange={(e) => setAgentName(e.target.value)}
-            placeholder="กรอกชื่อตัวแทน"
             className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
           />
         </div>

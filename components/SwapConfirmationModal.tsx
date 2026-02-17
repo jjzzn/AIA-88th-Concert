@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertTriangle, RefreshCw, Armchair, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, AlertTriangle, RefreshCw, Armchair, Loader2, CheckCircle2, ArrowRight, ChevronDown } from 'lucide-react';
 import { ticketManagementService } from '../lib/services/ticketManagementService';
 import { seatService } from '../lib/services';
 
@@ -35,14 +35,17 @@ interface Props {
   onSuccess: () => void;
 }
 
-type SwapStep = 'info' | 'select' | 'confirm' | 'processing' | 'success';
+type SwapStep = 'info' | 'zone-select' | 'seat-select' | 'confirm' | 'processing' | 'success';
 
 const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, seat, onSuccess }) => {
   const [step, setStep] = useState<SwapStep>('info');
   const [error, setError] = useState<string | null>(null);
   const [availableSeats, setAvailableSeats] = useState<any[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [selectedNewSeat, setSelectedNewSeat] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [availableZones, setAvailableZones] = useState<Array<{id: string, name: string, count: number}>>([]);
+  const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set(['level1', 'level2', 'level3']));
 
   const handleLoadSeats = async () => {
     setIsLoading(true);
@@ -56,17 +59,61 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
     }
 
     try {
-      // Get all seats in the zone (not just available ones)
-      const allSeatsInZone = await seatService.getSeatsByZones([seat.zone_id]);
+      // Get available seats in the same tier (all zones)
+      const availableSeatsInTier = await ticketManagementService.getAvailableSeatsForSwap({
+        tierId: seat.tier_id,
+        zoneId: seat.zone_id, // Pass for reference but query returns all zones
+      });
       
-      if (allSeatsInZone.length === 0) {
-        setError('ไม่พบที่นั่งในโซนนี้');
+      if (availableSeatsInTier.length === 0) {
+        setError('ไม่มีที่นั่งว่างใน tier นี้');
         setIsLoading(false);
         return;
       }
 
-      setAvailableSeats(allSeatsInZone);
-      setStep('select');
+      console.log('Available seats fetched:', availableSeatsInTier.length, 'seats');
+      console.log('Current user tier ID:', seat.tier_id);
+      console.log('Sample seats:', availableSeatsInTier.slice(0, 5).map(s => ({ zone: s.zone_id, tier: s.tier_id })));
+      
+      // Group seats by zone
+      const zoneMap = new Map<string, {id: string, name: string, count: number}>();
+      let skippedCount = 0;
+      
+      // Check if current user is SILVER tier
+      const isUserSilverTier = seat.tier_id === 'SV';
+      console.log('Is user SILVER tier?', isUserSilverTier);
+      
+      availableSeatsInTier.forEach(availableSeat => {
+        const zoneId = availableSeat.zone_id;
+        const zoneName = availableSeat.zones?.name || zoneId;
+        
+        // For SILVER tier users, only show Level 2 (S*) and Level 3 (L*) zones
+        if (isUserSilverTier) {
+          // Extract zone code (e.g., "ZONE-SB" -> "SB", "ZONE SB" -> "SB")
+          const zoneCode = zoneId.replace(/ZONE[-\s]*/i, '');
+          console.log('SILVER zone check:', zoneId, '->', zoneCode, 'starts with S or L?', zoneCode.startsWith('S') || zoneCode.startsWith('L'));
+          
+          if (!zoneCode.startsWith('S') && !zoneCode.startsWith('L')) {
+            skippedCount++;
+            return; // Skip zones that are not Level 2 or Level 3
+          }
+        }
+        
+        if (zoneMap.has(zoneId)) {
+          zoneMap.get(zoneId)!.count++;
+        } else {
+          zoneMap.set(zoneId, { id: zoneId, name: zoneName, count: 1 });
+        }
+      });
+      
+      const zones = Array.from(zoneMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+      console.log('Available zones:', zones.length, 'zones');
+      console.log('Zone names:', zones.map(z => z.name));
+      console.log('Skipped seats for SILVER:', skippedCount);
+      
+      setAvailableSeats(availableSeatsInTier);
+      setAvailableZones(zones);
+      setStep('zone-select');
     } catch (err) {
       setError('เกิดข้อผิดพลาดในการโหลดที่นั่ง');
     }
@@ -108,18 +155,67 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
     }
   };
 
+  const toggleLevel = (level: string) => {
+    setExpandedLevels(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(level)) {
+        newSet.delete(level);
+      } else {
+        newSet.add(level);
+      }
+      return newSet;
+    });
+  };
+
+  const handleZoneSelect = (zoneId: string) => {
+    setSelectedZone(zoneId);
+    setStep('seat-select');
+  };
+
   const handleClose = () => {
     setStep('info');
     setError(null);
     setAvailableSeats([]);
+    setAvailableZones([]);
+    setSelectedZone(null);
     setSelectedNewSeat(null);
+    setExpandedLevels(new Set(['level1', 'level2', 'level3']));
     onClose();
+  };
+
+  // Group zones by level
+  const groupZonesByLevel = () => {
+    const level1: typeof availableZones = [];
+    const level2: typeof availableZones = [];
+    const level3: typeof availableZones = [];
+
+    availableZones.forEach(zone => {
+      const zoneName = zone.name || zone.id;
+      // Level 1: A*, B*, VL, VR, FF, HH
+      if (zoneName.match(/ZONE [AB]|ZONE V[LR]|ZONE [FH][FH]/i)) {
+        level1.push(zone);
+      }
+      // Level 2: S*
+      else if (zoneName.match(/ZONE S/i)) {
+        level2.push(zone);
+      }
+      // Level 3: L*
+      else if (zoneName.match(/ZONE L/i)) {
+        level3.push(zone);
+      }
+    });
+
+    return { level1, level2, level3 };
   };
 
   if (!isOpen) return null;
 
-  // Group seats by row for seat map display
-  const seatsByRow = availableSeats.reduce((acc, seat) => {
+  // Filter seats by selected zone and group by row
+  const seatsInSelectedZone = selectedZone 
+    ? availableSeats.filter(s => s.zone_id === selectedZone)
+    : [];
+  
+  const seatsByRow = seatsInSelectedZone.reduce((acc, seat) => {
     if (!acc[seat.row]) acc[seat.row] = [];
     acc[seat.row].push(seat);
     return acc;
@@ -138,7 +234,8 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-black text-slate-900">
               {step === 'info' && 'สลับที่นั่ง'}
-              {step === 'select' && 'เลือกที่นั่งใหม่'}
+              {step === 'zone-select' && 'เลือกโซน'}
+              {step === 'seat-select' && 'เลือกที่นั่งใหม่'}
               {step === 'confirm' && 'ยืนยันการสลับ'}
               {step === 'processing' && 'กำลังสลับที่นั่ง'}
               {step === 'success' && 'สลับสำเร็จ'}
@@ -181,7 +278,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   <div>
                     <p className="text-sm font-black text-blue-900 mb-2">ข้อมูลการสลับที่นั่ง</p>
                     <p className="text-sm text-blue-700 font-medium leading-relaxed">
-                      คุณสามารถเลือกที่นั่งว่างในโซน <strong>{seat.zones?.name || 'ZONE A1'}</strong> เท่านั้น 
+                      คุณสามารถเลือกที่นั่งว่าง<strong>ทุกโซนภายใน tier เดียวกัน</strong> 
                       เมื่อสลับแล้วที่นั่งเก่าจะกลับเข้าระบบ
                     </p>
                   </div>
@@ -222,7 +319,147 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
             </>
           )}
 
-          {step === 'select' && (
+          {step === 'zone-select' && (
+            <>
+              {/* Venue Map */}
+              <div className="bg-white rounded-2xl border border-slate-100 mb-6 overflow-hidden">
+                <img 
+                  src="https://in2it-service.com/IN2IT/Map-88th-concert.png" 
+                  alt="AIA 88th Concert Venue Map"
+                  className="w-full h-auto object-contain"
+                  loading="lazy"
+                />
+              </div>
+
+              {/* Current Seat Info */}
+              <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">ที่นั่งปัจจุบัน</p>
+                <p className="text-sm font-black text-slate-900">
+                  {attendee.firstName} {attendee.lastName} • แถว {seat.row} ที่นั่ง {seat.number}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">โซน: {seat.zones?.name}</p>
+              </div>
+
+              {/* Zone Selection by Level */}
+              <div className="mb-6">
+                <p className="text-sm font-bold text-slate-700 mb-3">เลือกโซนที่ต้องการสลับไป ({availableZones.length} โซน)</p>
+                
+                {(() => {
+                  const { level1, level2, level3 } = groupZonesByLevel();
+                  
+                  return (
+                    <div className="space-y-3">
+                      {/* Level 1 */}
+                      {level1.length > 0 && (
+                        <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                          <button
+                            onClick={() => toggleLevel('level1')}
+                            className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-slate-900">Level 1 - Floor</span>
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                {level1.length} โซน
+                              </span>
+                            </div>
+                            <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${expandedLevels.has('level1') ? 'rotate-180' : ''}`} />
+                          </button>
+                          {expandedLevels.has('level1') && (
+                            <div className="p-3 grid grid-cols-2 gap-2">
+                              {level1.map((zone) => (
+                                <button
+                                  key={zone.id}
+                                  onClick={() => handleZoneSelect(zone.id)}
+                                  className="bg-white border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 rounded-xl p-3 transition text-left group"
+                                >
+                                  <p className="text-base font-black text-slate-900 group-hover:text-blue-600 mb-1">{zone.name}</p>
+                                  <p className="text-xs text-slate-500 font-medium">{zone.count} ที่ว่าง</p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Level 2 */}
+                      {level2.length > 0 && (
+                        <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                          <button
+                            onClick={() => toggleLevel('level2')}
+                            className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-slate-900">Level 2 - Middle</span>
+                              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
+                                {level2.length} โซน
+                              </span>
+                            </div>
+                            <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${expandedLevels.has('level2') ? 'rotate-180' : ''}`} />
+                          </button>
+                          {expandedLevels.has('level2') && (
+                            <div className="p-3 grid grid-cols-2 gap-2">
+                              {level2.map((zone) => (
+                                <button
+                                  key={zone.id}
+                                  onClick={() => handleZoneSelect(zone.id)}
+                                  className="bg-white border-2 border-slate-200 hover:border-purple-500 hover:bg-purple-50 rounded-xl p-3 transition text-left group"
+                                >
+                                  <p className="text-base font-black text-slate-900 group-hover:text-purple-600 mb-1">{zone.name}</p>
+                                  <p className="text-xs text-slate-500 font-medium">{zone.count} ที่ว่าง</p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Level 3 */}
+                      {level3.length > 0 && (
+                        <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                          <button
+                            onClick={() => toggleLevel('level3')}
+                            className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-slate-900">Level 3 - Upper</span>
+                              <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-1 rounded-full font-medium">
+                                {level3.length} โซน
+                              </span>
+                            </div>
+                            <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${expandedLevels.has('level3') ? 'rotate-180' : ''}`} />
+                          </button>
+                          {expandedLevels.has('level3') && (
+                            <div className="p-3 grid grid-cols-2 gap-2">
+                              {level3.map((zone) => (
+                                <button
+                                  key={zone.id}
+                                  onClick={() => handleZoneSelect(zone.id)}
+                                  className="bg-white border-2 border-slate-200 hover:border-cyan-500 hover:bg-cyan-50 rounded-xl p-3 transition text-left group"
+                                >
+                                  <p className="text-base font-black text-slate-900 group-hover:text-cyan-600 mb-1">{zone.name}</p>
+                                  <p className="text-xs text-slate-500 font-medium">{zone.count} ที่ว่าง</p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Back Button */}
+              <button
+                onClick={() => setStep('info')}
+                className="w-full py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition"
+              >
+                ย้อนกลับ
+              </button>
+            </>
+          )}
+
+          {step === 'seat-select' && (
             <>
               {/* Current Seat (compact) */}
               <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
@@ -240,41 +477,70 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                 </div>
 
                 {/* Seat Grid */}
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {Object.keys(seatsByRow).sort().map((row) => (
-                    <div key={row} className="flex items-center gap-3">
-                      <div className="w-8 flex-shrink-0">
-                        <p className="text-xs font-black text-slate-500 text-center">{row}</p>
-                      </div>
-                      <div className="flex-1 flex gap-2 flex-wrap justify-center">
-                        {seatsByRow[row].sort((a, b) => a.number - b.number).map((seatItem) => {
-                          const isCurrentSeat = seatItem.id === seat.id;
-                          const isBooked = seatItem.is_booked && !isCurrentSeat;
-                          const isSelected = selectedNewSeat?.id === seatItem.id;
-                          const isAvailable = !isBooked && !isCurrentSeat;
+                <style jsx>{`
+                  .seat-scroll-container {
+                    scrollbar-width: thin;
+                    scrollbar-color: #cbd5e1 #f1f5f9;
+                  }
+                  .seat-scroll-container::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
+                  }
+                  .seat-scroll-container::-webkit-scrollbar-track {
+                    background: #f1f5f9;
+                    border-radius: 4px;
+                  }
+                  .seat-scroll-container::-webkit-scrollbar-thumb {
+                    background: #cbd5e1;
+                    border-radius: 4px;
+                  }
+                  .seat-scroll-container::-webkit-scrollbar-thumb:hover {
+                    background: #94a3b8;
+                  }
+                `}</style>
+                <div className="seat-scroll-container space-y-5 max-h-96 overflow-y-auto overflow-x-auto">
+                  {Object.keys(seatsByRow).sort().map((row) => {
+                    const rowSeats = seatsByRow[row].sort((a, b) => a.number - b.number);
+                    
+                    return (
+                      <div key={row} className="flex items-center gap-3 min-w-fit">
+                        <div className="w-6 flex-shrink-0">
+                          <p className="text-[11px] font-black text-slate-400 text-center">{row}</p>
+                        </div>
+                        <div className="flex gap-3">
+                          {rowSeats.map((seatItem) => {
+                            const isCurrentSeat = seatItem.id === seat.id;
+                            const isBooked = seatItem.is_booked && !isCurrentSeat;
+                            const isSelected = selectedNewSeat?.id === seatItem.id;
+                            const isAvailable = !isBooked && !isCurrentSeat;
+                            const seatLabel = `${seatItem.row}${seatItem.number.toString().padStart(2, '0')}`;
 
-                          return (
-                            <button
-                              key={seatItem.id}
-                              onClick={() => isAvailable && setSelectedNewSeat(seatItem)}
-                              disabled={isBooked || isCurrentSeat}
-                              className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-xs transition-all ${
-                                isCurrentSeat
-                                  ? 'bg-yellow-400 text-slate-900 cursor-default'
-                                  : isBooked
-                                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                                  : isSelected
-                                    ? 'bg-red-500 text-white shadow-lg'
-                                    : 'bg-slate-900 text-white hover:bg-slate-700 active:scale-95'
-                              }`}
-                            >
-                              <span className="font-black">{seatItem.row}{seatItem.number}</span>
-                            </button>
-                          );
-                        })}
+                            return (
+                              <button
+                                key={seatItem.id}
+                                onClick={() => isAvailable && setSelectedNewSeat(seatItem)}
+                                disabled={isBooked || isCurrentSeat}
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center text-[8px] font-black tracking-tighter transition-all duration-300 transform ${
+                                  isCurrentSeat
+                                    ? 'bg-yellow-400 text-slate-900 cursor-default shadow-sm'
+                                    : isSelected
+                                      ? 'bg-[#E4002B] text-white ring-4 ring-red-100 scale-110 shadow-lg z-10'
+                                    : isBooked
+                                      ? 'bg-slate-900 text-slate-400 cursor-not-allowed opacity-50'
+                                      : 'bg-slate-900 text-slate-400 hover:bg-slate-700 shadow-sm'
+                                }`}
+                              >
+                                {seatLabel}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="w-6 flex-shrink-0">
+                          <p className="text-[11px] font-black text-slate-400 text-center">{row}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Legend */}
@@ -312,7 +578,8 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
               <div className="flex gap-3">
                 <button
                   onClick={() => {
-                    setStep('info');
+                    setStep('zone-select');
+                    setSelectedZone(null);
                     setSelectedNewSeat(null);
                   }}
                   className="flex-1 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition"
