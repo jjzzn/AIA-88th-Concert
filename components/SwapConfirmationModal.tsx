@@ -195,12 +195,12 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
       if (zoneName.match(/ZONE [AB]|ZONE V[LR]|ZONE [FH][FH]/i)) {
         level1.push(zone);
       }
-      // Level 2: S*
-      else if (zoneName.match(/ZONE S/i)) {
+      // Level 2: S* (SB, SC, SD, etc.)
+      else if (zoneName.match(/ZONE S[A-Z]/i)) {
         level2.push(zone);
       }
-      // Level 3: L*
-      else if (zoneName.match(/ZONE L/i)) {
+      // Level 3: C-T (single letter zones except A, B, S)
+      else if (zoneName.match(/ZONE [C-T]$/i)) {
         level3.push(zone);
       }
     });
