@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { BookingState, Seat } from '../types';
 import { CheckCircle2, Download, Calendar, MapPin, Star, Settings, RefreshCw, Trash2 } from 'lucide-react';
@@ -6,6 +5,8 @@ import QRCode from './QRCode';
 import html2canvas from 'html2canvas';
 import CancelConfirmationModal from './CancelConfirmationModal';
 import SwapConfirmationModal from './SwapConfirmationModal';
+import Dialog from './Dialog';
+import { useDialog } from '../hooks/useDialog';
 
 interface Props {
   state: BookingState;
@@ -18,6 +19,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
   const tierColor = state.selectedTier?.color || '#E4002B';
   const isSingleTicket = state.attendees.length === 1;
   const ticketRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const { dialogState, closeDialog, showError } = useDialog();
   const [managingTicket, setManagingTicket] = useState<{ attendee: any; seat: any; index: number } | null>(null);
   const [managementAction, setManagementAction] = useState<'cancel' | 'swap' | null>(null);
 
@@ -60,7 +62,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
       link.click();
     } catch (error) {
       console.error('Error downloading image:', error);
-      alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ');
+      showError('เกิดข้อผิดพลาดในการบันทึกรูปภาพ');
     }
   };
 
@@ -393,6 +395,17 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
           }}
         />
       )}
+
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        onConfirm={dialogState.onConfirm}
+        cancelText={dialogState.cancelText}
+      />
     </div>
   );
 };

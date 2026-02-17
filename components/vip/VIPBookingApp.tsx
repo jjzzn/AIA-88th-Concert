@@ -5,6 +5,8 @@ import VIPRoomSelection from './VIPRoomSelection';
 import VIPSeatSelection from './VIPSeatSelection';
 import VIPAttendeeForm from './VIPAttendeeForm';
 import VIPConfirmation from './VIPConfirmation';
+import Dialog from '../Dialog';
+import { useDialog } from '../../hooks/useDialog';
 
 const VIPBookingApp: React.FC = () => {
   const [step, setStep] = useState<VIPBookingStep>('ROOM_SELECTION');
@@ -14,6 +16,7 @@ const VIPBookingApp: React.FC = () => {
     attendees: [],
   });
   const [qrTokens, setQrTokens] = useState<Record<string, string>>({});
+  const { dialogState, closeDialog, showError } = useDialog();
 
   const handleRoomSelect = (room: VIPRoom) => {
     setState(prev => ({ ...prev, selectedRoom: room }));
@@ -44,11 +47,11 @@ const VIPBookingApp: React.FC = () => {
           setStep('CONFIRMATION');
         } else {
           console.error('Failed to create VIP booking:', result.error);
-          alert('เกิดข้อผิดพลาดในการจอง: ' + (result.error || 'กรุณาลองใหม่อีกครั้ง'));
+          showError('เกิดข้อผิดพลาดในการจอง: ' + (result.error || 'กรุณาลองใหม่อีกครั้ง'));
         }
       } catch (error) {
         console.error('Error creating VIP booking:', error);
-        alert('เกิดข้อผิดพลาดในการจอง กรุณาลองใหม่อีกครั้ง');
+        showError('เกิดข้อผิดพลาดในการจอง กรุณาลองใหม่อีกครั้ง');
       }
     }
   };
@@ -104,6 +107,17 @@ const VIPBookingApp: React.FC = () => {
           onReset={handleReset}
         />
       )}
+
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        onConfirm={dialogState.onConfirm}
+        cancelText={dialogState.cancelText}
+      />
     </div>
   );
 };

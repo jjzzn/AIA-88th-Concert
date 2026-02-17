@@ -3,6 +3,8 @@ import { VIPRoom, VIPSeat, VIPAttendee } from '../../types/vip';
 import { CheckCircle2, Download, Calendar, MapPin, Star } from 'lucide-react';
 import QRCode from '../QRCode';
 import html2canvas from 'html2canvas';
+import Dialog from '../Dialog';
+import { useDialog } from '../../hooks/useDialog';
 
 interface Props {
   room: VIPRoom;
@@ -15,6 +17,7 @@ interface Props {
 const VIPConfirmation: React.FC<Props> = ({ room, seats, attendees, qrTokens, onReset }) => {
   const isSingleTicket = attendees.length === 1;
   const ticketRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const { dialogState, closeDialog, showError } = useDialog();
 
   const handleDownloadImage = async (index: number) => {
     const ticketElement = ticketRefs.current[index];
@@ -53,7 +56,7 @@ const VIPConfirmation: React.FC<Props> = ({ room, seats, attendees, qrTokens, on
       link.click();
     } catch (error) {
       console.error('Error downloading image:', error);
-      alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ');
+      showError('เกิดข้อผิดพลาดในการบันทึกรูปภาพ');
     }
   };
 
@@ -226,6 +229,17 @@ const VIPConfirmation: React.FC<Props> = ({ room, seats, attendees, qrTokens, on
           กลับสู่หน้าหลัก
         </button>
       </div>
+
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        onConfirm={dialogState.onConfirm}
+        cancelText={dialogState.cancelText}
+      />
     </div>
   );
 };

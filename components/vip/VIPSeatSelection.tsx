@@ -4,6 +4,8 @@ import { vipBookingService } from '../../lib/services/vipBookingService';
 import { seatLockService, SeatAvailability } from '../../lib/services/seatLockService';
 import { supabase } from '../../lib/supabase';
 import { ChevronLeft, Armchair, Loader2, Users, ChevronRight } from 'lucide-react';
+import Dialog from '../Dialog';
+import { useDialog } from '../../hooks/useDialog';
 
 interface Props {
   room: VIPRoom;
@@ -14,6 +16,7 @@ interface Props {
 const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
   const [seats, setSeats] = useState<VIPSeat[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<Set<string>>(new Set());
+  const { dialogState, closeDialog, showWarning, showError } = useDialog();
   const [loading, setLoading] = useState(true);
   const [seatAvailability, setSeatAvailability] = useState<Record<string, SeatAvailability>>({});
 
@@ -75,7 +78,7 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
 
   const toggleSeat = async (seatId: string, isLocked: boolean) => {
     if (isLocked) {
-      alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+      showWarning('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
       return;
     }
     
@@ -90,9 +93,9 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
       
       if (!lockResult.success) {
         if (lockResult.alreadyLocked.length > 0) {
-          alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+          showWarning('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
         } else if (lockResult.alreadyBooked.length > 0) {
-          alert('ที่นั่งนี้ถูกจองแล้ว');
+          showError('ที่นั่งนี้ถูกจองแล้ว');
         }
         return;
       }
@@ -368,6 +371,17 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
           </div>
         </div>
       </div>
+
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        onConfirm={dialogState.onConfirm}
+        cancelText={dialogState.cancelText}
+      />
     </>
   );
 };

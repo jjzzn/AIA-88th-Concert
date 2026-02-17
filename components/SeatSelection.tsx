@@ -6,6 +6,8 @@ import { useSeats } from '../lib/hooks';
 import { seatService } from '../lib/services';
 import { seatLockService, SeatAvailability } from '../lib/services/seatLockService';
 import { supabase } from '../lib/supabase';
+import Dialog from './Dialog';
+import { useDialog } from '../hooks/useDialog';
 
 interface Props {
   tier: Tier;
@@ -26,6 +28,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
   });
   const [seatAvailability, setSeatAvailability] = useState<Record<string, SeatAvailability>>({});
   const [error, setError] = useState<string | null>(null);
+  const { dialogState, closeDialog, showWarning, showError } = useDialog();
   
   // Get zone IDs for fetching seats
   const zoneIds = useMemo(() => zones.map(z => z.id), [zones]);
@@ -148,7 +151,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
     // Check if seat is locked by someone else
     const availability = seatAvailability[seat.id];
     if (availability && availability.status === 'locked') {
-      alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+      showWarning('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
       return;
     }
     
@@ -166,9 +169,9 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
         if (!lockResult.success) {
           // Seat is already locked or booked
           if (lockResult.alreadyLocked.length > 0) {
-            alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+            showWarning('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
           } else if (lockResult.alreadyBooked.length > 0) {
-            alert('ที่นั่งนี้ถูกจองแล้ว');
+            showError('ที่นั่งนี้ถูกจองแล้ว');
           }
           return;
         }
@@ -605,6 +608,17 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
           <p className="text-sm font-bold leading-tight">{error}</p>
         </div>
       )}
+
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        onConfirm={dialogState.onConfirm}
+        cancelText={dialogState.cancelText}
+      />
     </div>
   );
 };

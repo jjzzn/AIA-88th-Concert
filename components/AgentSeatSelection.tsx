@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Tier, Seat, Zone } from '../types';
-import { Star, Loader2, ChevronDown, ChevronUp, Users, ArrowLeft, ChevronRight, Info } from 'lucide-react';
-import { seatService } from '../lib/services';
-import { tierService } from '../lib/services';
+import { Star, ChevronRight, Info, MapPin, LayoutGrid, Users, ArrowLeft, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useSeats } from '../lib/hooks';
+import { seatService, tierService } from '../lib/services';
 import { seatLockService, SeatAvailability } from '../lib/services/seatLockService';
 import { supabase } from '../lib/supabase';
+import Dialog from './Dialog';
+import { useDialog } from '../hooks/useDialog';
 
 interface Props {
   onSubmit: (seats: Seat[]) => void;
@@ -22,6 +24,7 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
   const [seatAvailability, setSeatAvailability] = useState<Record<string, SeatAvailability>>({});
   const [expandedTiers, setExpandedTiers] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  const { dialogState, closeDialog, showWarning, showError } = useDialog();
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -127,7 +130,7 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
     
     const availability = seatAvailability[seat.id];
     if (availability && availability.status === 'locked') {
-      alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+      showWarning('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
       return;
     }
     
@@ -144,9 +147,9 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
       if (!lockResult.success) {
         // Seat is already locked or booked
         if (lockResult.alreadyLocked.length > 0) {
-          alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+          showWarning('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
         } else if (lockResult.alreadyBooked.length > 0) {
-          alert('ที่นั่งนี้ถูกจองแล้ว');
+          showError('ที่นั่งนี้ถูกจองแล้ว');
         }
         return;
       }
@@ -470,6 +473,16 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
         </div>
       )}
 
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        onConfirm={dialogState.onConfirm}
+        cancelText={dialogState.cancelText}
+      />
     </div>
   );
 };
