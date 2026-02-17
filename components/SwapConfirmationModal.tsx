@@ -53,7 +53,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
 
     // Check if already swapped
     if ((attendee as any).swapCount >= 1) {
-      setError('คุณได้สลับที่นั่งไปแล้ว 1 ครั้ง (สูงสุด 1 ครั้ง)');
+      setError('คุณได้เปลี่ยนแปลงที่นั่งไปแล้ว 1 ครั้ง (สูงสุด 1 ครั้ง)');
       setIsLoading(false);
       return;
     }
@@ -233,6 +233,11 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-black text-slate-900">
+              {step === 'info' && 'เปลี่ยนแปลงที่นั่ง'}
+              {step === 'select' && 'เลือกที่นั่งใหม่'}
+              {step === 'confirm' && 'ยืนยันการเปลี่ยนแปลง'}
+              {step === 'processing' && 'กำลังเปลี่ยนแปลงที่นั่ง'}
+              {step === 'success' && 'เปลี่ยนแปลงสำเร็จ'}
               {step === 'info' && 'สลับที่นั่ง'}
               {step === 'zone-select' && 'เลือกโซน'}
               {step === 'seat-select' && 'เลือกที่นั่งใหม่'}
@@ -276,10 +281,10 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-black text-blue-900 mb-2">ข้อมูลการสลับที่นั่ง</p>
+                    <p className="text-sm font-black text-blue-900 mb-2">ข้อมูลการเปลี่ยนแปลงที่นั่ง</p>
                     <p className="text-sm text-blue-700 font-medium leading-relaxed">
-                      คุณสามารถเลือกที่นั่งว่าง<strong>ทุกโซนภายใน tier เดียวกัน</strong> 
-                      เมื่อสลับแล้วที่นั่งเก่าจะกลับเข้าระบบ
+                      คุณสามารถเลือกที่นั่งว่างในโซน <strong>{seat.zones?.name || 'ZONE A1'}</strong> เท่านั้น 
+                      เมื่อเปลี่ยนแล้วที่นั่งเก่าจะกลับเข้าระบบ
                     </p>
                   </div>
                 </div>
@@ -544,22 +549,24 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                 </div>
 
                 {/* Legend */}
-                <div className="mt-6 pt-4 border-t border-slate-100 flex justify-center gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-slate-900 rounded-full" />
-                    <span className="font-medium text-slate-700">ว่าง</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full" />
-                    <span className="font-medium text-slate-700">เลือก</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-                    <span className="font-medium text-slate-700">ที่นั่งของคุณ</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-slate-300 rounded-full" />
-                    <span className="font-medium text-slate-700">เต็ม</span>
+                <div className="mt-6 pt-4 border-t border-slate-100">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-slate-900 rounded-full" />
+                      <span className="font-medium text-slate-700">ว่าง</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full" />
+                      <span className="font-medium text-slate-700">ที่นั่งใหม่ที่เลือก</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full" />
+                      <span className="font-medium text-slate-700">ที่นั่งของคุณ</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-slate-300 rounded-full" />
+                      <span className="font-medium text-slate-700">เต็ม</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -606,9 +613,10 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   การเปลี่ยนแปลง
                 </p>
                 
-                <div className="flex items-center gap-4">
+                {/* Desktop: Side by side, Mobile: Stacked */}
+                <div className="flex flex-col md:flex-row items-center gap-4">
                   {/* Old Seat */}
-                  <div className="flex-1 bg-white rounded-xl p-4 border-2 border-red-200">
+                  <div className="w-full md:flex-1 bg-white rounded-xl p-4 border-2 border-red-200">
                     <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">ที่นั่งเดิม</p>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
@@ -621,11 +629,11 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                     </div>
                   </div>
 
-                  {/* Arrow */}
-                  <ArrowRight className="w-6 h-6 text-slate-400 flex-shrink-0" />
+                  {/* Arrow - horizontal on desktop, vertical on mobile */}
+                  <ArrowRight className="w-6 h-6 text-slate-400 flex-shrink-0 rotate-90 md:rotate-0" />
 
                   {/* New Seat */}
-                  <div className="flex-1 bg-white rounded-xl p-4 border-2 border-blue-200">
+                  <div className="w-full md:flex-1 bg-white rounded-xl p-4 border-2 border-blue-200">
                     <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">ที่นั่งใหม่</p>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -650,7 +658,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-blue-700 font-medium">
-                    กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนยืนยัน การสลับที่นั่งสามารถทำได้เพียง <strong>1 ครั้งเท่านั้น</strong>
+                    กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนยืนยัน การเปลี่ยนแปลงที่นั่งสามารถทำได้เพียง <strong>1 ครั้งเท่านั้น</strong>
                   </p>
                 </div>
               </div>
@@ -676,7 +684,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 className="w-5 h-5" />
-                  <span>ยืนยันสลับที่นั่ง</span>
+                  <span>ยืนยันเปลี่ยนแปลงที่นั่ง</span>
                 </button>
               </div>
             </>
@@ -685,7 +693,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
           {step === 'processing' && (
             <div className="text-center py-8">
               <Loader2 className="w-16 h-16 text-blue-600 animate-spin mx-auto mb-4" />
-              <p className="text-lg font-bold text-slate-900">กำลังสลับที่นั่ง...</p>
+              <p className="text-lg font-bold text-slate-900">กำลังเปลี่ยนแปลงที่นั่ง...</p>
               <p className="text-sm text-slate-500 mt-2">กรุณารอสักครู่</p>
             </div>
           )}
@@ -695,7 +703,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
               <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-blue-200">
                 <CheckCircle2 className="w-10 h-10 text-blue-600" />
               </div>
-              <h4 className="text-2xl font-black text-slate-900 mb-2">สลับที่นั่งสำเร็จ!</h4>
+              <h4 className="text-2xl font-black text-slate-900 mb-2">เปลี่ยนแปลงที่นั่งสำเร็จ!</h4>
               <p className="text-sm text-slate-500 mb-6">ที่นั่งของคุณถูกเปลี่ยนเรียบร้อยแล้ว</p>
               
               {/* New Ticket Info */}

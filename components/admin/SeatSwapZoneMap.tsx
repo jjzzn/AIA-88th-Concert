@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Loader2, ArrowLeft, MapPin } from 'lucide-react';
 import { SeatInfo } from '../../types/seat-swap';
 import { seatSwapService } from '../../lib/services/seatSwapService';
+import { supabase } from '../../lib/supabase';
 
 interface Props {
   currentSeatId: string;
@@ -33,6 +34,27 @@ const SeatSwapZoneMap: React.FC<Props> = ({
 
   useEffect(() => {
     loadSeats();
+    
+    // Set up realtime subscription for seats table
+    const channel = supabase
+      .channel('admin-seat-swap-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'seats'
+        },
+        (payload) => {
+          console.log('🔄 Real-time seat change (Admin Swap):', payload);
+          loadSeats();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentSeatId]);
 
   const loadSeats = async () => {
@@ -172,13 +194,7 @@ const SeatSwapZoneMap: React.FC<Props> = ({
               <p className="text-sm font-medium text-slate-600">จะถูกเปลี่ยนเป็นที่ว่าง</p>
             </div>
           </div>
-          <div className="grid grid-cols-4 gap-3">
-            <div>
-              <p className="text-xs font-bold text-slate-500 uppercase mb-1">Tier</p>
-              <p className="text-sm font-black" style={{ color: currentSeatInfo.tier_color }}>
-                {currentSeatInfo.tier_name}
-              </p>
-            </div>
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase mb-1">Zone</p>
               <p className="text-sm font-black text-slate-900">{currentSeatInfo.zone_name}</p>

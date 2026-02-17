@@ -244,7 +244,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
                           className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 text-blue-700 rounded-xl font-bold text-sm hover:bg-blue-100 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-blue-200"
                         >
                           <Settings className="w-4 h-4" />
-                          สลับที่นั่ง {(attendee as any).swapCount >= 1 && '(ใช้แล้ว)'}
+                          เปลี่ยนแปลงที่นั่ง {(attendee as any).swapCount >= 1 && '(ใช้แล้ว)'}
                         </button>
                         <button
                           onClick={() => {

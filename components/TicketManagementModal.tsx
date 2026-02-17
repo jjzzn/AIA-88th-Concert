@@ -110,7 +110,7 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
     setIsProcessing(false);
 
     if (result.success) {
-      setSuccess(result.message || 'สลับที่นั่งเรียบร้อยแล้ว');
+      setSuccess(result.message || 'เปลี่ยนแปลงที่นั่งเรียบร้อยแล้ว');
       setTimeout(() => {
         onSuccess();
         onClose();
@@ -152,7 +152,7 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
             <h3 className="text-2xl font-black text-slate-900">
               {action === 'menu' && 'จัดการการจอง'}
               {action === 'cancel' && 'ยกเลิกตั๋ว'}
-              {action === 'swap' && 'สลับที่นั่ง'}
+              {action === 'swap' && 'เปลี่ยนแปลงที่นั่ง'}
               {action === 'swap-select' && 'เลือกที่นั่งใหม่'}
             </h3>
             <button 
@@ -246,11 +246,11 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   </div>
                   <div className="flex-1">
                     <p className={`text-lg font-black ${canSwap && !attendee.isCheckedIn ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-400'}`}>
-                      สลับที่นั่ง
+                      เปลี่ยนแปลงที่นั่ง
                     </p>
                     <p className="text-xs text-slate-500 font-medium">
                       {attendee.isCheckedIn
-                        ? 'ไม่สามารถสลับที่นั่งที่เช็คอินแล้ว'
+                        ? 'ไม่สามารถเปลี่ยนแปลงที่นั่งที่เช็คอินแล้ว'
                         : !canSwap
                           ? `ใช้งานแล้ว ${attendee.swapCount || 0}/1 ครั้ง`
                           : 'เปลี่ยนที่นั่งใน tier เดียวกัน (ใช้ได้ 1 ครั้ง)'
@@ -311,7 +311,7 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                 <div className="flex items-start gap-3 mb-3">
                   <AlertTriangle className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-black text-blue-900 mb-2">ข้อมูลการสลับที่นั่ง</p>
+                    <p className="text-sm font-black text-blue-900 mb-2">ข้อมูลการเปลี่ยนแปลงที่นั่ง</p>
                     <p className="text-sm text-blue-700 font-medium leading-relaxed">
                       คุณสามารถเลือกที่นั่งว่าง<strong>ทุกโซนภายใน tier เดียวกัน</strong> 
                       เมื่อสลับแล้วที่นั่งเก่าจะกลับเข้าระบบ

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VIPRoom, VIPSeat } from '../../types/vip';
 import { vipBookingService } from '../../lib/services/vipBookingService';
 import { seatLockService, SeatAvailability } from '../../lib/services/seatLockService';
+import { supabase } from '../../lib/supabase';
 import { ChevronLeft, Armchair, Loader2, Users, ChevronRight } from 'lucide-react';
 
 interface Props {
@@ -20,7 +21,7 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
     loadSeats();
   }, [room]);
 
-  // Check seat availability and lock status
+  // Check seat availability with realtime updates
   useEffect(() => {
     if (seats.length === 0) return;
 
@@ -37,21 +38,33 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
     };
 
     checkAvailability();
-    const interval = setInterval(checkAvailability, 10000);
-    return () => clearInterval(interval);
-  }, [seats]);
-
-  // Lock selected seats
-  useEffect(() => {
-    if (selectedSeats.size === 0) return;
-
-    const lockSeats = async () => {
-      const seatIds: string[] = Array.from(selectedSeats);
-      await seatLockService.lockSeats(seatIds, 5);
+    
+    // Set up realtime subscription for VIP seats
+    const channel = supabase
+      .channel('vip-seat-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vip_seats',
+          filter: `room_id=eq.${room.id}`
+        },
+        (payload) => {
+          console.log('🔄 Real-time VIP seat change:', payload);
+          checkAvailability();
+        }
+      )
+      .subscribe();
+    
+    const interval = setInterval(checkAvailability, 5000);
+    
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
     };
+  }, [seats, room.id]);
 
-    lockSeats();
-  }, [selectedSeats]);
 
   const loadSeats = async () => {
     setLoading(true);
@@ -60,13 +73,30 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
     setLoading(false);
   };
 
-  const toggleSeat = (seatId: string, isLocked: boolean) => {
-    if (isLocked) return;
+  const toggleSeat = async (seatId: string, isLocked: boolean) => {
+    if (isLocked) {
+      alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+      return;
+    }
     
     const newSelected = new Set(selectedSeats);
     if (newSelected.has(seatId)) {
+      // Unlock when deselecting
+      await seatLockService.unlockSeats([seatId]);
       newSelected.delete(seatId);
     } else {
+      // Lock immediately when selecting
+      const lockResult = await seatLockService.lockSeats([seatId], 5);
+      
+      if (!lockResult.success) {
+        if (lockResult.alreadyLocked.length > 0) {
+          alert('ที่นั่งถูกเลือกแล้ว กรุณาเลือกที่นั่งใหม่');
+        } else if (lockResult.alreadyBooked.length > 0) {
+          alert('ที่นั่งนี้ถูกจองแล้ว');
+        }
+        return;
+      }
+      
       newSelected.add(seatId);
     }
     setSelectedSeats(newSelected);
@@ -169,10 +199,8 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
                           disabled={isBooked || isLocked}
                           className={`
                             w-12 h-12 rounded-xl flex flex-col items-center justify-center font-bold text-[10px] transition-all relative
-                            ${isBooked
-                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-50'
-                              : isLocked
-                                ? 'bg-yellow-400 text-yellow-900 cursor-not-allowed border-2 border-yellow-500'
+                            ${isBooked || isLocked
+                              ? 'bg-slate-400 text-slate-100 cursor-not-allowed border-2 border-slate-300'
                               : isSelected
                                 ? 'bg-[#E4002B] text-white shadow-lg shadow-red-500/25 scale-105 border-2 border-[#E4002B]'
                                 : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-[#E4002B] hover:scale-105 active:scale-95'
@@ -203,19 +231,13 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
                 <div className="w-8 h-8 bg-[#E4002B] rounded-lg flex items-center justify-center">
                   <Armchair className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-slate-600">เลือกแล้ว</span>
+                <span className="font-bold text-slate-600">เลือก</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-yellow-400 border-2 border-yellow-500 rounded-lg flex items-center justify-center">
-                  <Armchair className="w-4 h-4 text-yellow-900" />
+                <div className="w-8 h-8 bg-slate-400 border-2 border-slate-300 rounded-lg flex items-center justify-center">
+                  <Armchair className="w-4 h-4 text-slate-100" />
                 </div>
-                <span className="font-bold text-slate-600">กำลังจอง</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center opacity-50">
-                  <Armchair className="w-4 h-4 text-slate-400" />
-                </div>
-                <span className="font-bold text-slate-600">จองแล้ว</span>
+                <span className="font-bold text-slate-600">เต็ม</span>
               </div>
             </div>
           </div>
@@ -311,7 +333,7 @@ const VIPSeatSelection: React.FC<Props> = ({ room, onBack, onSubmit }) => {
             <div className="border-t border-slate-100 pt-4 mb-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-bold text-slate-600">Guest by</p>
-                <p className="text-2xl font-black text-slate-900">{selectedSeats.size} Seats</p>
+                <p className="text-2xl font-black text-slate-900">{selectedSeats.size} {selectedSeats.size === 1 ? 'Seat' : 'Seats'}</p>
               </div>
             </div>
 

@@ -91,7 +91,7 @@ const CancelConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, s
         <div className="px-8 pt-10 pb-10">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-black text-slate-900">ยกเลิกตั๋ว</h3>
+            <h3 className="text-2xl font-black text-slate-900">ยืนยันการยกเลิก</h3>
             {step !== 'processing' && (
               <button 
                 onClick={handleClose} 
@@ -130,7 +130,7 @@ const CancelConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, s
                   <div>
                     <p className="text-sm font-black text-red-900 mb-2">คำเตือน</p>
                     <p className="text-sm text-red-700 font-medium leading-relaxed">
-                      เมื่อยกเลิกตั๋วแล้ว <strong>QR Code และโค้ดที่แลกมา</strong> จะไม่สามารถใช้งานได้อีกต่อไป 
+                      เมื่อยกเลิกตั๋วแล้ว <strong>QR Code และรหัสที่แลกมา</strong> จะไม่สามารถใช้งานได้อีกต่อไป 
                       และที่นั่งจะถูกคืนเข้าระบบ
                     </p>
                   </div>
@@ -163,8 +163,8 @@ const CancelConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, s
                 <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
                   <AlertTriangle className="w-8 h-8 text-red-600" />
                 </div>
-                <h4 className="text-xl font-black text-slate-900 mb-3">ยืนยันการยกเลิกตั๋ว</h4>
-                <p className="text-sm text-slate-600 mb-6">คุณต้องการยกเลิกตั๋วนี้จริงๆ ใช่ไหม?</p>
+                <h4 className="text-xl font-black text-slate-900 mb-3">ต้องการยกเลิกตั๋วนี้ใช่ไหม?</h4>
+                {/*<p className="text-sm text-slate-600 mb-6">คุณต้องการยกเลิกตั๋วนี้จริงๆ ใช่ไหม?</p> */}
                 
                 {/* Ticket Summary */}
                 <div className="bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100">
