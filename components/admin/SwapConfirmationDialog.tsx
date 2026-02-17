@@ -55,7 +55,7 @@ const SwapConfirmationDialog: React.FC<Props> = ({
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900">ยืนยันการสลับที่นั่ง</h3>
+                <h3 className="text-xl font-black text-slate-900">ยืนยันการเปลี่ยนแปลงที่นั่ง</h3>
                 <p className="text-xs text-slate-600">กรุณาตรวจสอบข้อมูลก่อนดำเนินการ</p>
               </div>
             </div>
@@ -86,12 +86,6 @@ const SwapConfirmationDialog: React.FC<Props> = ({
                 <p className="text-[10px] font-bold text-red-600 uppercase mb-3">ที่นั่งเดิม</p>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">TIER</p>
-                    <p className="text-xl font-black uppercase text-slate-900">
-                      {oldSeat.tier_name}
-                    </p>
-                  </div>
-                  <div>
                     <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">ZONE</p>
                     <p className="text-base font-black text-slate-900">{oldSeat.zone_name}</p>
                   </div>
@@ -120,15 +114,6 @@ const SwapConfirmationDialog: React.FC<Props> = ({
                 <p className="text-[10px] font-bold text-green-600 uppercase mb-3">ที่นั่งใหม่</p>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">TIER</p>
-                    <p 
-                      className="text-xl font-black uppercase"
-                      style={{ color: newSeat.tier_color }}
-                    >
-                      {newSeat.tier_name}
-                    </p>
-                  </div>
-                  <div>
                     <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">ZONE</p>
                     <p className="text-base font-black text-slate-900">{newSeat.zone_name}</p>
                   </div>
@@ -149,19 +134,14 @@ const SwapConfirmationDialog: React.FC<Props> = ({
             </div>
 
             {/* Change Warnings */}
-            {(tierChange || zoneChange) && (
+            {zoneChange && (
               <div className="bg-amber-50 border-2 border-amber-200 rounded-[16px] p-4">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-bold text-amber-900 mb-1">การเปลี่ยนแปลง</p>
                     <ul className="text-sm text-amber-800 space-y-1">
-                      {tierChange && (
-                        <li>• เปลี่ยน Tier จาก <strong>{oldSeat.tier_name}</strong> เป็น <strong>{newSeat.tier_name}</strong></li>
-                      )}
-                      {zoneChange && (
-                        <li>• เปลี่ยน Zone จาก <strong>{oldSeat.zone_name}</strong> เป็น <strong>{newSeat.zone_name}</strong></li>
-                      )}
+                      <li>• เปลี่ยน Zone จาก <strong>{oldSeat.zone_name}</strong> เป็น <strong>{newSeat.zone_name}</strong></li>
                     </ul>
                   </div>
                 </div>
@@ -171,7 +151,7 @@ const SwapConfirmationDialog: React.FC<Props> = ({
             {/* Reason (Optional) */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                เหตุผลในการสลับที่นั่ง (ไม่บังคับ)
+                เหตุผลในการเปลี่ยนแปลงที่นั่ง (ไม่บังคับ)
               </label>
               <textarea
                 value={reason}
@@ -236,7 +216,7 @@ const SwapConfirmationDialog: React.FC<Props> = ({
                 ) : (
                   <>
                     <CheckCircle2 className="w-5 h-5" />
-                    <span>ยืนยันการสลับ</span>
+                    <span>ยืนยันการเปลี่ยนแปลง</span>
                   </>
                 )}
               </button>

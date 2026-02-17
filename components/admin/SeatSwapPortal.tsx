@@ -75,12 +75,12 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
         setBookingInfo(null);
         setSelectedSeat(null);
         setShowConfirmation(false);
-        dialog.showSuccess('สลับที่นั่งสำเร็จ!', 'สำเร็จ');
+        dialog.showSuccess('เปลี่ยนแปลงที่นั่งสำเร็จ!', 'สำเร็จ');
       } else {
-        dialog.showError('ไม่สามารถสลับที่นั่งได้: ' + result.message);
+        dialog.showError('ไม่สามารถเปลี่ยนแปลงที่นั่งได้: ' + result.message);
       }
     } catch (err) {
-      dialog.showError('เกิดข้อผิดพลาดในการสลับที่นั่ง');
+      dialog.showError('เกิดข้อผิดพลาดในการเปลี่ยนแปลงที่นั่ง');
     } finally {
       setSwapping(false);
     }
@@ -100,7 +100,7 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-black text-slate-900">ระบบสลับที่นั่ง</h1>
+              <h1 className="text-2xl font-black text-slate-900">ระบบเปลี่ยนแปลงที่นั่ง</h1>
               <p className="text-sm text-slate-500">Seat Swap Management System</p>
             </div>
             {bookingInfo && (

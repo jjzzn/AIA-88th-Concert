@@ -560,15 +560,21 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
       <div className="px-4 pb-8 space-y-4">
         {selectedSeatsData.length > 0 ? (
           <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-2xl flex items-center justify-between animate-in slide-in-from-bottom-2">
-            <div>
-              <p className="text-[10px] font-black text-[#E4002B] uppercase tracking-widest mb-1">YOUR SELECTION</p>
-              <h4 className="text-xl font-black text-slate-900">
-                {selectedSeatsData.map(s => `${s.row}${s.number.toString().padStart(2, '0')}`).join(', ')}
-              </h4>
+            <div className="flex items-center gap-4">
+              <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Zone</p>
+                <p className="text-base font-black text-slate-900">{selectedZone?.code || selectedZone?.name}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">ที่นั่งที่เลือก</p>
+                <h4 className="text-lg font-black text-slate-900">
+                  {selectedSeatsData.map(s => `${s.row}${s.number.toString().padStart(2, '0')}`).join(', ')}
+                </h4>
+              </div>
             </div>
             <div className="text-right">
-               <p className="text-xs font-bold text-slate-400">{selectedSeatsData.length} Seats</p>
-               <p className="text-[10px] font-medium text-slate-300">Impact Arena</p>
+               <p className="text-base font-black text-slate-900">{selectedSeatsData.length} {selectedSeatsData.length === 1 ? 'Seat' : 'Seats'}</p>
+               <p className="text-[10px] font-medium text-slate-400">{selectedZone?.name}</p>
             </div>
           </div>
         ) : (
