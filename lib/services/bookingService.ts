@@ -369,12 +369,95 @@ export const bookingService = {
         throw error;
       }
       
-      console.log('Found bookings:', data?.length || 0);
+      console.log('Found regular bookings:', data?.length || 0);
       if (data && data.length > 0) {
         console.log('First booking phone:', data[0].phone);
         console.log('First booking seats:', data[0].booking_seats?.length || 0);
       }
-      return data || [];
+
+      // Also search VIP bookings
+      const { data: vipData, error: vipError } = await supabase
+        .from('vip_bookings')
+        .select(`
+          *,
+          vip_booking_seats (
+            id,
+            first_name,
+            last_name,
+            seat_id,
+            email,
+            phone,
+            qr_token,
+            checked_in,
+            vip_seats (
+              id,
+              row,
+              number,
+              room_id,
+              vip_rooms (
+                id,
+                room_number,
+                name,
+                capacity
+              )
+            )
+          )
+        `)
+        .eq('phone', digitsOnly)
+        .order('created_at', { ascending: false });
+
+      if (vipError) {
+        console.error('VIP bookings error:', vipError);
+      } else {
+        console.log('Found VIP bookings:', vipData?.length || 0);
+      }
+
+      // Combine regular and VIP bookings
+      const regularBookings = data || [];
+      const vipBookings = vipData || [];
+      
+      // Transform VIP bookings to match regular booking structure
+      const transformedVipBookings = vipBookings.map((vipBooking: any) => ({
+        ...vipBooking,
+        booking_number: `VIP-${vipBooking.id.substring(0, 8)}`,
+        is_vip: true,
+        booking_seats: vipBooking.vip_booking_seats?.map((vipSeat: any) => ({
+          id: vipSeat.id,
+          first_name: vipSeat.first_name,
+          last_name: vipSeat.last_name,
+          seat_id: vipSeat.seat_id,
+          qr_token: vipSeat.qr_token,
+          checked_in: vipSeat.checked_in,
+          is_cancelled: false,
+          cancel_count: 0,
+          swap_count: 0,
+          check_ins: [],
+          seats: vipSeat.vip_seats ? {
+            id: vipSeat.vip_seats.id,
+            row: vipSeat.vip_seats.row,
+            number: vipSeat.vip_seats.number,
+            tier_id: 'VIP',
+            zone_id: vipSeat.vip_seats.room_id,
+            tiers: {
+              id: 'VIP',
+              name: 'VIP',
+              level: 'PREMIUM',
+              price: 0,
+              color: '#FFD700',
+              description: `VIP Room ${vipSeat.vip_seats.vip_rooms?.room_number || ''} - ${vipSeat.vip_seats.vip_rooms?.name || ''}`,
+            },
+            zones: {
+              id: vipSeat.vip_seats.room_id,
+              name: `VIP Room ${vipSeat.vip_seats.vip_rooms?.room_number || ''}`,
+            },
+          } : null,
+        })) || [],
+      }));
+
+      const allBookings = [...regularBookings, ...transformedVipBookings];
+      console.log('Total bookings found:', allBookings.length);
+      
+      return allBookings;
     } catch (error) {
       console.error('Failed to fetch booking by phone:', error);
       return [];

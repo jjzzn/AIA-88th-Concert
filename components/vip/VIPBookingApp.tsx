@@ -34,8 +34,12 @@ const VIPBookingApp: React.FC = () => {
     // Save to database
     if (state.selectedRoom && attendees.length > 0) {
       try {
+        // Use first attendee's phone as booking phone for retrieval
+        const bookingPhone = attendees[0].phone;
+        
         const result = await vipBookingService.createBooking({
           roomId: state.selectedRoom.id,
+          phone: bookingPhone,
           attendees: attendees,
         });
 
