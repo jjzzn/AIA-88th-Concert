@@ -39,6 +39,10 @@ const App: React.FC = () => {
     }
   };
 
+  const handleVIPBooking = () => {
+    window.location.href = '/vip-booking';
+  };
+
   const handleAgentInfoSubmit = (agentInfo: AgentInfo) => {
     setState(prev => ({ ...prev, agentInfo }));
     // Agent goes directly to code entry
@@ -286,6 +290,7 @@ const App: React.FC = () => {
           <UserTypeSelection 
             onSelectUserType={handleUserTypeSelect}
             onViewMyTicket={() => setIsTicketModalOpen(true)}
+            onVIPBooking={handleVIPBooking}
           />
         )}
         {step === 'AGENT_CODE_ENTRY' && (
