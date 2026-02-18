@@ -46,7 +46,7 @@ const UserTypeSelection: React.FC<Props> = ({ onSelectUserType, onViewMyTicket, 
             </div>
             <div className="text-left flex-1">
               <h3 className="text-lg font-black text-slate-900 group-hover:text-[#E4002B] transition">
-                ลูกค้าใช้สิทธิ์ด้วยตัวเอง
+                ลูกค้า AIA
               </h3>
               <p className="text-sm text-slate-500 mt-1">
                 สำหรับลูกค้าทั่วไป และ ดำเนินการจองด้วยตนเอง

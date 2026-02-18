@@ -147,21 +147,40 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
           )}
         </div>
 
-        {/* Booking for Others Checkbox */}
+        {/* Privilege Type Selection */}
         <div className="pt-2">
-          <label className="flex items-start gap-3 cursor-pointer group">
-            <div className="relative flex items-center justify-center mt-0.5">
-              <input
-                type="checkbox"
-                checked={isBookingForOthers}
-                onChange={(e) => setIsBookingForOthers(e.target.checked)}
-                className="w-5 h-5 rounded border-2 border-slate-300 text-[#E4002B] focus:ring-2 focus:ring-[#E4002B]/20 cursor-pointer accent-[#E4002B]"
-              />
-            </div>
-            <span className="text-sm text-slate-600 leading-relaxed">
-              ต้องการใช้สิทธิ์นี้ให้บุคคลอื่น
-            </span>
+          <label className="block text-sm font-bold text-slate-700 mb-3">
+            ประเภทการใช้สิทธิ์
           </label>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Using Own Privilege */}
+            <label className="flex items-center gap-2 cursor-pointer group bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 hover:border-[#E4002B] hover:bg-red-50 transition">
+              <input
+                type="radio"
+                name="privilegeType"
+                checked={!isBookingForOthers}
+                onChange={() => setIsBookingForOthers(false)}
+                className="w-4 h-4 text-[#E4002B] focus:ring-2 focus:ring-[#E4002B]/20 cursor-pointer accent-[#E4002B]"
+              />
+              <span className="text-sm text-slate-700 font-medium">
+                เจ้าของสิทธิ์ดำเนินการ
+              </span>
+            </label>
+
+            {/* Using Someone Else's Privilege */}
+            <label className="flex items-center gap-2 cursor-pointer group bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 hover:border-[#E4002B] hover:bg-red-50 transition">
+              <input
+                type="radio"
+                name="privilegeType"
+                checked={isBookingForOthers}
+                onChange={() => setIsBookingForOthers(true)}
+                className="w-4 h-4 text-[#E4002B] focus:ring-2 focus:ring-[#E4002B]/20 cursor-pointer accent-[#E4002B]"
+              />
+              <span className="text-sm text-slate-700 font-medium">
+                ใช้สิทธิ์แทนบุคคลอื่น
+              </span>
+            </label>
+          </div>
         </div>
 
         {/* PDPA Checkbox */}
