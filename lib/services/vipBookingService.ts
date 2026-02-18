@@ -3,6 +3,7 @@ import { VIPRoom, VIPSeat, VIPAttendee } from '../../types/vip';
 
 interface CreateVIPBookingParams {
   roomId: string;
+  phone: string;
   attendees: VIPAttendee[];
 }
 
@@ -84,6 +85,7 @@ export const vipBookingService = {
         .from('vip_bookings')
         .insert({
           room_id: params.roomId,
+          phone: params.phone,
         } as any)
         .select()
         .single();
