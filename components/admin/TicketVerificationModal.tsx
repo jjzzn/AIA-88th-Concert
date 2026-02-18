@@ -3,7 +3,7 @@ import { X, CheckCircle2, AlertCircle, Loader2, UserCheck, Clock } from 'lucide-
 import { AdminUser, TicketVerification } from '../../types/admin';
 import { adminService } from '../../lib/services/adminService';
 import Dialog from '../Dialog';
-import { useDialog } from '../../lib/hooks/useDialog';
+import { useDialog } from '../../hooks/useDialog';
 
 interface Props {
   qrToken: string;
@@ -31,26 +31,15 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
   };
 
   const handleCheckIn = async () => {
-    console.log('🎯 Check-in button clicked');
-    console.log('Verification:', verification);
-    console.log('Admin User:', adminUser);
-    
     if (!verification?.valid || !verification.booking_seat_id || verification.already_checked_in) {
-      console.error('❌ Check-in validation failed:', {
-        valid: verification?.valid,
-        booking_seat_id: verification?.booking_seat_id,
-        already_checked_in: verification?.already_checked_in
-      });
       return;
     }
 
     if (!adminUser.gate_id) {
-      console.error('❌ Admin user has no gate_id');
       dialog.showError('ไม่สามารถ Check-in ได้: ไม่พบข้อมูล Gate\nกรุณาติดต่อผู้ดูแลระบบ');
       return;
     }
 
-    console.log('✅ Starting check-in...');
     setCheckingIn(true);
     
     const success = await adminService.checkIn(
@@ -59,11 +48,9 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
       adminUser.gate_id
     );
 
-    console.log('Check-in result:', success);
     setCheckingIn(false);
     
     if (success) {
-      console.log('✅ Check-in successful!');
       // Update verification to show checked in
       setVerification({
         ...verification,
@@ -74,10 +61,23 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
       // Show success state
       setCheckInSuccess(true);
       
-      // Notify parent immediately
-      onCheckInComplete();
+      // Show success dialog with callback to notify parent AFTER user closes dialog
+      dialog.showDialog({
+        type: 'success',
+        title: 'เช็คอินสำเร็จ',
+        message: `เช็คอินสำเร็จ!\n\n${verification.attendee_name}\nที่นั่ง: ${verification.zone_name} ${verification.row}${verification.seat.toString().padStart(2, '0')}`,
+        confirmText: 'ตกลง',
+        onConfirm: () => {
+          onCheckInComplete();
+        }
+      });
+      
+      // Auto-close dialog after 3 seconds
+      setTimeout(() => {
+        dialog.closeDialog();
+        onCheckInComplete();
+      }, 3000);
     } else {
-      console.error('❌ Check-in failed');
       dialog.showError('เกิดข้อผิดพลาดในการ Check-in\nกรุณาลองอีกครั้ง');
     }
   };
@@ -253,14 +253,14 @@ const TicketVerificationModal: React.FC<Props> = ({ qrToken, adminUser, onClose,
 
       {/* Dialog */}
       <Dialog
-        isOpen={dialog.isOpen}
+        isOpen={dialog.dialogState.isOpen}
         onClose={dialog.closeDialog}
-        title={dialog.config.title}
-        message={dialog.config.message}
-        type={dialog.config.type}
-        confirmText={dialog.config.confirmText}
-        cancelText={dialog.config.cancelText}
-        onConfirm={dialog.config.onConfirm}
+        title={dialog.dialogState.title}
+        message={dialog.dialogState.message}
+        type={dialog.dialogState.type}
+        confirmText={dialog.dialogState.confirmText}
+        cancelText={dialog.dialogState.cancelText}
+        onConfirm={dialog.dialogState.onConfirm}
       />
     </div>
   );
