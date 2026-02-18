@@ -245,7 +245,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
             />
           </div>
           <p className="text-[9px] text-slate-400 mt-3 text-center font-medium">
-            Impact Arena - AIA 88th Year Concert
+            Impact Arena - AIA 88th Anniversary Concert
           </p>
         </div>
       </div>

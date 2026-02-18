@@ -22,7 +22,7 @@ const UserTypeSelection: React.FC<Props> = ({ onSelectUserType, onViewMyTicket }
         
         {/* Concert Title */}
         <h1 className="text-3xl font-normal text-[#E4002B] tracking-wide">
-          88th Year Concert
+          88th Anniversary Concert
         </h1>
       </div>
 

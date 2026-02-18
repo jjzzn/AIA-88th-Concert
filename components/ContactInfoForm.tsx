@@ -79,7 +79,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
         </div>
         
         <h1 className="text-3xl font-normal text-[#E4002B] tracking-wide">
-          88th Year Concert
+          88th Anniversary Concert
         </h1>
       </div>
 
@@ -214,7 +214,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
               <div className="prose prose-sm max-w-none">
                 <h4 className="font-bold text-slate-900 mb-3">1. การยอมรับเงื่อนไข</h4>
                 <p className="text-slate-600 mb-4">
-                  การใช้งานระบบจองตั๋วคอนเสิร์ต 88th Year Concert ถือว่าท่านได้อ่านและยอมรับเงื่อนไขการใช้งานทั้งหมดแล้ว
+                  การใช้งานระบบจองตั๋วคอนเสิร์ต 88th Anniversary Concert ถือว่าท่านได้อ่านและยอมรับเงื่อนไขการใช้งานทั้งหมดแล้ว
                 </p>
 
                 <h4 className="font-bold text-slate-900 mb-3">2. การจองและการชำระเงิน</h4>

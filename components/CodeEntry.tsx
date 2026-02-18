@@ -79,7 +79,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
         
         {/* Concert Title */}
         <h1 className="text-3xl font-normal text-[#E4002B] tracking-wide">
-          88th Year Concert
+          88th Anniversary Concert
         </h1>
       </div>
 
