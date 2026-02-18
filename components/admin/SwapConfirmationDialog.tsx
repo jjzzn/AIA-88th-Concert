@@ -55,7 +55,7 @@ const SwapConfirmationDialog: React.FC<Props> = ({
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900">ยืนยันการเปลี่ยนแปลงที่นั่ง</h3>
+                <h3 className="text-xl font-black text-slate-900">ยืนยันการเปลี่ยนแปลง</h3>
                 <p className="text-xs text-slate-600">กรุณาตรวจสอบข้อมูลก่อนดำเนินการ</p>
               </div>
             </div>
