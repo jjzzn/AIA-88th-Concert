@@ -234,16 +234,11 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-black text-slate-900">
               {step === 'info' && 'เปลี่ยนแปลงที่นั่ง'}
-              {step === 'select' && 'เลือกที่นั่งใหม่'}
+              {step === 'zone-select' && 'เลือกโซน'}
+              {step === 'seat-select' && 'เลือกที่นั่งใหม่'}
               {step === 'confirm' && 'ยืนยันการเปลี่ยนแปลง'}
               {step === 'processing' && 'กำลังเปลี่ยนแปลงที่นั่ง'}
               {step === 'success' && 'เปลี่ยนแปลงสำเร็จ'}
-              {step === 'info' && 'สลับที่นั่ง'}
-              {step === 'zone-select' && 'เลือกโซน'}
-              {step === 'seat-select' && 'เลือกที่นั่งใหม่'}
-              {step === 'confirm' && 'ยืนยันการสลับ'}
-              {step === 'processing' && 'กำลังสลับที่นั่ง'}
-              {step === 'success' && 'สลับสำเร็จ'}
             </h3>
             {step !== 'processing' && (
               <button 
@@ -346,7 +341,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
 
               {/* Zone Selection by Level */}
               <div className="mb-6">
-                <p className="text-sm font-bold text-slate-700 mb-3">เลือกโซนที่ต้องการสลับไป ({availableZones.length} โซน)</p>
+                <p className="text-sm font-bold text-slate-700 mb-3">เลือกโซนที่ต้องการเปลี่ยนแปลงไป ({availableZones.length} โซน)</p>
                 
                 {(() => {
                   const { level1, level2, level3 } = groupZonesByLevel();
@@ -597,7 +592,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   disabled={!selectedNewSeat}
                   className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <span>ยืนยันการสลับ</span>
+                  <span>ยืนยันการเปลี่ยนแปลง</span>
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
@@ -683,7 +678,7 @@ const SwapConfirmationModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 className="w-5 h-5" />
-                  <span>ยืนยันเปลี่ยนแปลงที่นั่ง</span>
+                  <span>ยืนยันการเปลี่ยนแปลง</span>
                 </button>
               </div>
             </>

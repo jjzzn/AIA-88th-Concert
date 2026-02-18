@@ -41,7 +41,7 @@ const AdminLogin: React.FC<Props> = ({ onLoginSuccess }) => {
           <div className="w-20 h-20 bg-[#E4002B] rounded-[24px] flex items-center justify-center mx-auto mb-4 shadow-2xl">
             <Lock className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-2">88th Year Concert</h1>
+          <h1 className="text-3xl font-black text-white mb-2">88th Anniversary Concert</h1>
           <p className="text-slate-400 font-medium">Staff Dashboard</p>
         </div>
 

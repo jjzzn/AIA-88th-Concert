@@ -314,7 +314,7 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                     <p className="text-sm font-black text-blue-900 mb-2">ข้อมูลการเปลี่ยนแปลงที่นั่ง</p>
                     <p className="text-sm text-blue-700 font-medium leading-relaxed">
                       คุณสามารถเลือกที่นั่งว่าง<strong>ทุกโซนภายใน tier เดียวกัน</strong> 
-                      เมื่อสลับแล้วที่นั่งเก่าจะกลับเข้าระบบ
+                      เมื่อเปลี่ยนแปลงแล้วที่นั่งเก่าจะกลับเข้าระบบ
                     </p>
                   </div>
                 </div>
@@ -408,7 +408,7 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
                   ) : (
                     <>
                       <CheckCircle2 className="w-5 h-5" />
-                      <span>ยืนยันสลับ</span>
+                      <span>ยืนยันการเปลี่ยนแปลง</span>
                     </>
                   )}
                 </button>

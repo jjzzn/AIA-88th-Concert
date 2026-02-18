@@ -245,7 +245,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
             />
           </div>
           <p className="text-[9px] text-slate-400 mt-3 text-center font-medium">
-            Impact Arena - AIA 88th Year Concert
+            Impact Arena - AIA 88th Anniversary Concert
           </p>
         </div>
       </div>
@@ -260,8 +260,8 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
           <p className="text-[10px] font-bold text-[#E4002B] uppercase tracking-wider mb-1">SELECT YOUR ZONE</p>
           <h2 className="text-2xl font-black text-slate-900 mb-6">เลือกโซนที่ต้องการ</h2>
           
-          {/* Compact Tier Header Display - Hide for PT and GD codes */}
-          {tier.id !== 'PT' && tier.id !== 'GD' && (
+          {/* Compact Tier Header Display - Hide for PT, GD, and SL codes */}
+          {tier.id !== 'PT' && tier.id !== 'GD' && tier.id !== 'SL' && (
             <div 
               className="mb-4 p-5 rounded-[28px] relative overflow-hidden text-white shadow-[0_15px_30px_rgba(0,0,0,0.12)] transition-all duration-500"
               style={{ 

@@ -48,7 +48,7 @@ const VIPRoomSelection: React.FC<Props> = ({ onSelectRoom }) => {
           <div className="max-w-3xl">
             <p className="text-[#E4002B] font-black text-xs uppercase tracking-[0.3em] mb-3">EXCLUSIVE EVENT</p>
             <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
-              AIA 88th Anniversary Celebration
+              88th Anniversary Concert
             </h1>
             <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
               Experience world-class music in the comfort of our exclusive VIP suites. 
