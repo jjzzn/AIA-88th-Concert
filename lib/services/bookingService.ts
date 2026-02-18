@@ -208,19 +208,79 @@ export const bookingService = {
       // Normalize phone number - remove all non-digits first
       const digitsOnly = phone.replace(/\D/g, '');
       
-      console.log('Searching for phone:', phone, 'digits only:', digitsOnly);
+      console.log('Searching for attendee phone:', phone, 'digits only:', digitsOnly);
       
-      // Try multiple search strategies
-      // 1. Exact match with original
-      let { data, error } = await supabase
-        .from('bookings')
+      // Search by booking_seats.phone instead of bookings.phone
+      // This allows searching by individual attendee phone numbers
+      let { data: seatData, error } = await supabase
+        .from('booking_seats')
         .select(`
-          *,
-          booking_seats (
+          id,
+          first_name,
+          last_name,
+          seat_id,
+          phone,
+          qr_token,
+          checked_in,
+          is_cancelled,
+          cancelled_at,
+          cancel_count,
+          swap_count,
+          original_seat_id,
+          booking_id,
+          seats!booking_seats_seat_id_fkey (
+            id,
+            row,
+            number,
+            tier_id,
+            zone_id,
+            tiers (
+              id,
+              name,
+              level,
+              price,
+              color,
+              description
+            ),
+            zones (
+              id,
+              name
+            )
+          ),
+          check_ins (
+            id,
+            checked_in_at
+          ),
+          bookings!booking_seats_booking_id_fkey (
+            id,
+            email,
+            phone,
+            status,
+            booking_number,
+            created_at,
+            booker_first_name,
+            booker_last_name,
+            user_type,
+            agent_code,
+            agent_name
+          )
+        `)
+        .eq('phone', digitsOnly)
+        .order('created_at', { ascending: false });
+
+      // 2. If not found, try without leading 0
+      if (!seatData || seatData.length === 0) {
+        const withoutZero = digitsOnly.startsWith('0') ? digitsOnly.substring(1) : digitsOnly;
+        console.log('Trying without leading 0:', withoutZero);
+        
+        const result = await supabase
+          .from('booking_seats')
+          .select(`
             id,
             first_name,
             last_name,
             seat_id,
+            phone,
             qr_token,
             checked_in,
             is_cancelled,
@@ -228,6 +288,7 @@ export const bookingService = {
             cancel_count,
             swap_count,
             original_seat_id,
+            booking_id,
             seats!booking_seats_seat_id_fkey (
               id,
               row,
@@ -250,115 +311,25 @@ export const bookingService = {
             check_ins (
               id,
               checked_in_at
-            )
-          )
-        `)
-        .eq('phone', digitsOnly)
-        .order('created_at', { ascending: false });
-
-      // 2. If not found, try without leading 0
-      if (!data || data.length === 0) {
-        const withoutZero = digitsOnly.startsWith('0') ? digitsOnly.substring(1) : digitsOnly;
-        console.log('Trying without leading 0:', withoutZero);
-        
-        const result = await supabase
-          .from('bookings')
-          .select(`
-            *,
-            booking_seats (
+            ),
+            bookings!booking_seats_booking_id_fkey (
               id,
-              first_name,
-              last_name,
-              seat_id,
-              qr_token,
-              checked_in,
-              is_cancelled,
-              cancelled_at,
-              cancel_count,
-              swap_count,
-              original_seat_id,
-              seats!booking_seats_seat_id_fkey (
-                id,
-                row,
-                number,
-                tier_id,
-                zone_id,
-                tiers (
-                  id,
-                  name,
-                  level,
-                  price,
-                  color,
-                  description
-                ),
-                zones (
-                  id,
-                  name
-                )
-              ),
-              check_ins (
-                id,
-                checked_in_at
-              )
+              email,
+              phone,
+              status,
+              booking_number,
+              created_at,
+              booker_first_name,
+              booker_last_name,
+              user_type,
+              agent_code,
+              agent_name
             )
           `)
           .eq('phone', withoutZero)
           .order('created_at', { ascending: false });
         
-        data = result.data;
-        error = result.error;
-      }
-
-      // 3. If still not found, try with leading 0
-      if (!data || data.length === 0) {
-        const withZero = digitsOnly.startsWith('0') ? digitsOnly : `0${digitsOnly}`;
-        console.log('Trying with leading 0:', withZero);
-        
-        const result = await supabase
-          .from('bookings')
-          .select(`
-            *,
-            booking_seats (
-              id,
-              first_name,
-              last_name,
-              seat_id,
-              qr_token,
-              checked_in,
-              is_cancelled,
-              cancelled_at,
-              cancel_count,
-              swap_count,
-              original_seat_id,
-              seats!booking_seats_seat_id_fkey (
-                id,
-                row,
-                number,
-                tier_id,
-                zone_id,
-                tiers (
-                  id,
-                  name,
-                  level,
-                  price,
-                  color,
-                  description
-                ),
-                zones (
-                  id,
-                  name
-                )
-              ),
-              check_ins (
-                id,
-                checked_in_at
-              )
-            )
-          `)
-          .eq('phone', withZero)
-          .order('created_at', { ascending: false });
-        
-        data = result.data;
+        seatData = result.data;
         error = result.error;
       }
 
@@ -367,12 +338,46 @@ export const bookingService = {
         throw error;
       }
       
-      console.log('Found bookings:', data?.length || 0);
-      if (data && data.length > 0) {
-        console.log('First booking phone:', data[0].phone);
-        console.log('First booking seats:', data[0].booking_seats?.length || 0);
-      }
-      return data || [];
+      console.log('Found booking seats:', seatData?.length || 0);
+      
+      // Group seats by booking_id to reconstruct booking structure
+      const bookingsMap = new Map();
+      
+      seatData?.forEach((seat: any) => {
+        const bookingId = seat.booking_id;
+        const bookingInfo = seat.bookings;
+        
+        if (!bookingsMap.has(bookingId)) {
+          bookingsMap.set(bookingId, {
+            ...bookingInfo,
+            booking_seats: []
+          });
+        }
+        
+        // Add seat to booking
+        const booking = bookingsMap.get(bookingId);
+        booking.booking_seats.push({
+          id: seat.id,
+          first_name: seat.first_name,
+          last_name: seat.last_name,
+          seat_id: seat.seat_id,
+          phone: seat.phone,
+          qr_token: seat.qr_token,
+          checked_in: seat.checked_in,
+          is_cancelled: seat.is_cancelled,
+          cancelled_at: seat.cancelled_at,
+          cancel_count: seat.cancel_count,
+          swap_count: seat.swap_count,
+          original_seat_id: seat.original_seat_id,
+          seats: seat.seats,
+          check_ins: seat.check_ins
+        });
+      });
+      
+      const bookings = Array.from(bookingsMap.values());
+      console.log('Found bookings:', bookings.length);
+      
+      return bookings;
     } catch (error) {
       console.error('Failed to fetch booking by phone:', error);
       return [];

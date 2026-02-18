@@ -32,7 +32,7 @@ const VIPBookingApp: React.FC = () => {
     setState(prev => ({ ...prev, attendees }));
     
     // Save to database
-    if (state.selectedRoom) {
+    if (state.selectedRoom && attendees.length > 0) {
       try {
         const result = await vipBookingService.createBooking({
           roomId: state.selectedRoom.id,

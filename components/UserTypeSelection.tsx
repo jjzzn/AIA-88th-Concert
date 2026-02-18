@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
 import { UserType } from '../types';
-import { User, Users, Search, Ticket } from 'lucide-react';
+import { User, Users, Search, Ticket, Crown } from 'lucide-react';
 
 interface Props {
   onSelectUserType: (userType: UserType) => void;
   onViewMyTicket: () => void;
+  onVIPBooking?: () => void;
 }
 
-const UserTypeSelection: React.FC<Props> = ({ onSelectUserType, onViewMyTicket }) => {
+const UserTypeSelection: React.FC<Props> = ({ onSelectUserType, onViewMyTicket, onVIPBooking }) => {
   return (
     <div className="px-4 py-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* AIA Logo and Title */}

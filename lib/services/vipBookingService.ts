@@ -84,7 +84,7 @@ export const vipBookingService = {
         .from('vip_bookings')
         .insert({
           room_id: params.roomId,
-        })
+        } as any)
         .select()
         .single();
 
