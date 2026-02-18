@@ -33,7 +33,8 @@ export const checkinService = {
           last_name,
           checked_in,
           checked_in_at,
-          seats (
+          is_cancelled,
+          seats!booking_seats_seat_id_fkey (
             row,
             number,
             tier_id,
@@ -44,6 +45,7 @@ export const checkinService = {
           )
         `)
         .eq('qr_token', qrToken)
+        .eq('is_cancelled', false)
         .single();
 
       if (fetchError || !bookingSeat) {

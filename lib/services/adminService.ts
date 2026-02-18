@@ -61,7 +61,8 @@ export const adminService = {
           first_name,
           last_name,
           qr_token,
-          seats (
+          is_cancelled,
+          seats!booking_seats_seat_id_fkey (
             id,
             row,
             number,
@@ -81,6 +82,7 @@ export const adminService = {
           )
         `)
         .eq('qr_token', qrToken)
+        .eq('is_cancelled', false)
         .single();
 
       if (error || !data) {
@@ -207,7 +209,7 @@ export const adminService = {
       const { data: totalSeats } = await supabase
         .from('booking_seats')
         .select(`
-          seats (
+          seats!booking_seats_seat_id_fkey (
             tier_id,
             tiers (
               id,
@@ -215,7 +217,8 @@ export const adminService = {
               level
             )
           )
-        `);
+        `)
+        .eq('is_cancelled', false);
 
       const tierTotals: { [key: string]: number } = {};
       totalSeats?.forEach((bs: any) => {
@@ -271,10 +274,10 @@ export const adminService = {
         .select(`
           id,
           checked_in_at,
-          booking_seats (
+          booking_seats!inner (
             first_name,
             last_name,
-            seats (
+            seats!booking_seats_seat_id_fkey (
               row,
               number,
               zone_id,
