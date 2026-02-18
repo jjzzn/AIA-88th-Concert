@@ -105,6 +105,7 @@ const App: React.FC = () => {
       phone: contact.phone,
       bookerFirstName: state.contact.firstName,
       bookerLastName: state.contact.lastName,
+      isBookingForOthers: state.contact.isBookingForOthers,
       codes: state.codes,
       seats: attendees.map(a => ({
         seatId: a.seatId,

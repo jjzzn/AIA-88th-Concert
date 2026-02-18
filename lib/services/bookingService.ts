@@ -12,6 +12,7 @@ export interface BookingData {
   phone: string;
   bookerFirstName?: string;
   bookerLastName?: string;
+  isBookingForOthers?: boolean;
   codes: string[];
   seats: Array<{
     seatId: string;
@@ -60,6 +61,7 @@ export const bookingService = {
           phone: bookingData.phone,
           booker_first_name: bookingData.bookerFirstName || null,
           booker_last_name: bookingData.bookerLastName || null,
+          is_booking_for_others: bookingData.isBookingForOthers || false,
           status: 'confirmed',
           user_type: bookingData.userType || null,
           agent_code: bookingData.agentInfo?.agentCode || null,

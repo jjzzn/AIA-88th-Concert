@@ -43,6 +43,7 @@ export interface ContactInfo {
   phone: string;
   firstName?: string;
   lastName?: string;
+  isBookingForOthers?: boolean;
 }
 
 export interface AgentInfo {

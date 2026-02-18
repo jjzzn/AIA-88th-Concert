@@ -45,10 +45,10 @@ const UserTypeSelection: React.FC<Props> = ({ onSelectUserType, onViewMyTicket }
             </div>
             <div className="text-left flex-1">
               <h3 className="text-lg font-black text-slate-900 group-hover:text-[#E4002B] transition">
-                ใช้สิทธิ์ด้วยตัวเอง
+                ลูกค้าใช้สิทธิ์ด้วยตัวเอง
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                สำหรับผู้ที่มีรหัสสิทธิ์และจะใช้เอง
+                สำหรับลูกค้าทั่วไป และ ดำเนินการจองด้วยตนเอง
               </p>
             </div>
           </div>
@@ -65,10 +65,10 @@ const UserTypeSelection: React.FC<Props> = ({ onSelectUserType, onViewMyTicket }
             </div>
             <div className="text-left flex-1">
               <h3 className="text-lg font-black text-slate-900 group-hover:text-[#E4002B] transition">
-                ตัวแทน
+                ตัวแทน / Agency ของ AIA
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                สำหรับตัวแทนที่ทำการจองให้ลูกค้า
+                สำหรับตัวแทน / Agency ที่ทำการจองให้ลูกค้า
               </p>
             </div>
           </div>

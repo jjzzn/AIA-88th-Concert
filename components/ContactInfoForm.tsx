@@ -11,6 +11,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [isBookingForOthers, setIsBookingForOthers] = useState(false);
   const [pdpaAccepted, setPdpaAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -65,6 +66,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
       lastName,
       phone,
       email: '', // Will be filled later in DetailsForm
+      isBookingForOthers,
     });
   };
 
@@ -143,6 +145,23 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
           {errors.phone && (
             <p className="text-xs text-red-500 font-bold mt-2">{errors.phone}</p>
           )}
+        </div>
+
+        {/* Booking for Others Checkbox */}
+        <div className="pt-2">
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <div className="relative flex items-center justify-center mt-0.5">
+              <input
+                type="checkbox"
+                checked={isBookingForOthers}
+                onChange={(e) => setIsBookingForOthers(e.target.checked)}
+                className="w-5 h-5 rounded border-2 border-slate-300 text-[#E4002B] focus:ring-2 focus:ring-[#E4002B]/20 cursor-pointer accent-[#E4002B]"
+              />
+            </div>
+            <span className="text-sm text-slate-600 leading-relaxed">
+              ต้องการใช้สิทธิ์นี้ให้บุคคลอื่น
+            </span>
+          </label>
         </div>
 
         {/* PDPA Checkbox */}
