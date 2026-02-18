@@ -384,12 +384,18 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
           attendee={managingTicket.attendee}
           seat={managingTicket.seat}
           onSuccess={() => {
-            // Force refresh by redirecting with timestamp to bypass cache
+            // Close modal first
+            setManagingTicket(null);
+            setManagementAction(null);
+            
+            // Force hard refresh with cache-busting to reload swap_count
             const urlParams = new URLSearchParams(window.location.search);
             const phone = urlParams.get('phone');
             if (phone) {
-              window.location.href = `/my-tickets?phone=${phone}&t=${Date.now()}`;
+              // Use replace to avoid back button issues and force reload
+              window.location.replace(`/my-tickets?phone=${phone}&refresh=${Date.now()}`);
             } else {
+              // Force reload from server, not cache
               window.location.reload();
             }
           }}

@@ -76,7 +76,7 @@ const Dialog: React.FC<DialogProps> = ({
   const colors = getColors();
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -85,14 +85,6 @@ const Dialog: React.FC<DialogProps> = ({
       
       {/* Dialog */}
       <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 transition-colors"
-        >
-          <X className="w-5 h-5 text-slate-400" />
-        </button>
-
         {/* Content */}
         <div className="p-8">
           {/* Icon */}
