@@ -11,6 +11,7 @@ import AdminSeatSwapPage from './pages/admin-seat-swap';
 import AdminCancelPage from './pages/admin-cancel';
 import AdminSearchPage from './pages/admin-search';
 import AdminRestorePage from './pages/admin-restore';
+import AdminDashboardPage from './pages/admin-dashboard';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -43,6 +44,11 @@ const Router: React.FC = () => {
   // Check if path is /check-in
   if (currentPath === '/check-in' || currentPath === '/check-in/') {
     return <AdminPage />;
+  }
+
+  // Check if path is /admin/manage/dashboard
+  if (currentPath === '/admin/manage/dashboard' || currentPath === '/admin/manage/dashboard/') {
+    return <AdminDashboardPage />;
   }
 
   // Check if path is /admin/manage/seat-swap

@@ -340,3 +340,88 @@ function getTimeAgo(date: Date): string {
   const days = Math.floor(hours / 24);
   return `${days} วันที่แล้ว`;
 }
+
+export const getDashboardStats = async () => {
+  try {
+    // Get total bookings count
+    const { count: totalBookings } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true });
+
+    // Get total seats count
+    const { count: totalSeats } = await supabase
+      .from('booking_seats')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_cancelled', false);
+
+    // Get total checked in count
+    const { count: totalCheckedIn } = await supabase
+      .from('booking_seats')
+      .select('*', { count: 'exact', head: true })
+      .eq('checked_in', true)
+      .eq('is_cancelled', false);
+
+    // Get recent bookings with details
+    const { data: recentBookings, error } = await supabase
+      .from('bookings')
+      .select(`
+        id,
+        booking_number,
+        booker_first_name,
+        booker_last_name,
+        phone,
+        is_booking_for_others,
+        created_at,
+        booking_seats!inner (
+          id,
+          qr_token,
+          seats!booking_seats_seat_id_fkey (
+            tier_id,
+            tiers (
+              name
+            )
+          )
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error('Error fetching recent bookings:', error);
+      throw error;
+    }
+
+    // Transform data - group by booking and show first QR token
+    const transformedBookings = recentBookings?.map((booking: any) => {
+      const seatCount = booking.booking_seats?.length || 0;
+      const tierName = booking.booking_seats?.[0]?.seats?.tiers?.name || 'N/A';
+      const firstQrToken = booking.booking_seats?.[0]?.qr_token || booking.booking_number;
+      
+      return {
+        id: booking.id,
+        booking_number: firstQrToken, // Use QR token as primary identifier
+        booker_name: `${booking.booker_first_name || ''} ${booking.booker_last_name || ''}`.trim() || 'N/A',
+        phone: booking.phone,
+        seat_count: seatCount,
+        tier_name: tierName,
+        created_at: booking.created_at,
+        is_booking_for_others: booking.is_booking_for_others || false,
+      };
+    }) || [];
+
+    return {
+      totalBookings: totalBookings || 0,
+      totalSeats: totalSeats || 0,
+      totalCheckedIn: totalCheckedIn || 0,
+      recentBookings: transformedBookings,
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    return {
+      totalBookings: 0,
+      totalSeats: 0,
+      totalCheckedIn: 0,
+      recentBookings: [],
+    };
+  }
+};
