@@ -24,10 +24,48 @@ interface SwapSeatResult {
   error?: string;
 }
 
+interface SearchTicketParams {
+  searchTerm: string;
+  searchType: 'booking_number' | 'phone' | 'name';
+}
+
+interface TicketInfo {
+  booking_seat_id: string;
+  booking_id: string;
+  booking_number: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  qr_token: string;
+  seat_row: string;
+  seat_number: number;
+  zone_name: string;
+  tier_name: string;
+  is_cancelled: boolean;
+  cancel_count: number;
+  swap_count: number;
+  checked_in: boolean;
+  cancelled_at?: string;
+}
+
+interface RestoreTicketParams {
+  bookingSeatId: string;
+  seatId: string;
+}
+
+interface RestoreTicketResult {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
 interface AvailableSeatsParams {
   tierId: string;
   zoneId: string;
 }
+
+export type { SearchTicketParams, TicketInfo, RestoreTicketParams, RestoreTicketResult };
 
 export const ticketManagementService = {
   /**
@@ -146,6 +184,179 @@ export const ticketManagementService = {
     } catch (error) {
       console.error('Error cancelling ticket:', error);
       return { success: false, error: 'เกิดข้อผิดพลาดในการยกเลิกตั๋ว' };
+    }
+  },
+
+  /**
+   * Search for tickets by booking number, phone, or name
+   */
+  async searchTickets(params: SearchTicketParams): Promise<TicketInfo[]> {
+    try {
+      let query = supabase
+        .from('booking_seats')
+        .select(`
+          id,
+          booking_id,
+          first_name,
+          last_name,
+          qr_token,
+          is_cancelled,
+          cancel_count,
+          swap_count,
+          checked_in,
+          cancelled_at,
+          seats (
+            row,
+            number,
+            zones (
+              name
+            ),
+            tiers (
+              name
+            )
+          ),
+          bookings (
+            booking_number,
+            email,
+            phone
+          )
+        `);
+
+      // Apply search filter based on type
+      if (params.searchType === 'booking_number') {
+        // Search by booking number - need to join with bookings table
+        const { data: bookings } = await supabase
+          .from('bookings')
+          .select('id')
+          .ilike('booking_number', `%${params.searchTerm}%`);
+        
+        if (!bookings || bookings.length === 0) {
+          return [];
+        }
+        
+        const bookingIds = bookings.map(b => b.id);
+        query = query.in('booking_id', bookingIds);
+      } else if (params.searchType === 'phone') {
+        // Search by phone - need to join with bookings table
+        const digitsOnly = params.searchTerm.replace(/\D/g, '');
+        const { data: bookings } = await supabase
+          .from('bookings')
+          .select('id')
+          .or(`phone.ilike.%${digitsOnly}%,phone.ilike.%${params.searchTerm}%`);
+        
+        if (!bookings || bookings.length === 0) {
+          return [];
+        }
+        
+        const bookingIds = bookings.map(b => b.id);
+        query = query.in('booking_id', bookingIds);
+      } else if (params.searchType === 'name') {
+        // Search by attendee name
+        query = query.or(`first_name.ilike.%${params.searchTerm}%,last_name.ilike.%${params.searchTerm}%`);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error searching tickets:', error);
+        return [];
+      }
+
+      // Transform data to TicketInfo format
+      const tickets: TicketInfo[] = (data || []).map((item: any) => ({
+        booking_seat_id: item.id,
+        booking_id: item.booking_id,
+        booking_number: item.bookings?.booking_number || 'N/A',
+        first_name: item.first_name,
+        last_name: item.last_name,
+        email: item.bookings?.email || '',
+        phone: item.bookings?.phone || '',
+        qr_token: item.qr_token,
+        seat_row: item.seats?.row || '',
+        seat_number: item.seats?.number || 0,
+        zone_name: item.seats?.zones?.name || '',
+        tier_name: item.seats?.tiers?.name || '',
+        is_cancelled: item.is_cancelled || false,
+        cancel_count: item.cancel_count || 0,
+        swap_count: item.swap_count || 0,
+        checked_in: item.checked_in || false,
+        cancelled_at: item.cancelled_at,
+      }));
+
+      return tickets;
+    } catch (error) {
+      console.error('Error searching tickets:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Restore a cancelled ticket - marks as active and books the seat again
+   */
+  async restoreTicket(params: RestoreTicketParams): Promise<RestoreTicketResult> {
+    try {
+      // Get booking seat details
+      const { data: bookingSeat, error: fetchError } = await supabase
+        .from('booking_seats')
+        .select('is_cancelled, seat_id, cancel_count')
+        .eq('id', params.bookingSeatId)
+        .single();
+
+      if (fetchError || !bookingSeat) {
+        return { success: false, error: 'ไม่พบข้อมูลตั๋ว' };
+      }
+
+      if (!bookingSeat.is_cancelled) {
+        return { success: false, error: 'ตั๋วนี้ไม่ได้ถูกยกเลิก' };
+      }
+
+      // Check if the seat is still available
+      const { data: seat, error: seatError } = await supabase
+        .from('seats')
+        .select('is_booked')
+        .eq('id', params.seatId)
+        .single();
+
+      if (seatError || !seat) {
+        return { success: false, error: 'ไม่พบข้อมูลที่นั่ง' };
+      }
+
+      if (seat.is_booked) {
+        return { success: false, error: 'ที่นั่งนี้ถูกจองไปแล้ว ไม่สามารถคืนตั๋วได้' };
+      }
+
+      // Restore the ticket
+      const { error: updateError } = await supabase
+        .from('booking_seats')
+        .update({
+          is_cancelled: false,
+          cancelled_at: null,
+        })
+        .eq('id', params.bookingSeatId);
+
+      if (updateError) {
+        console.error('Error restoring ticket:', updateError);
+        return { success: false, error: 'เกิดข้อผิดพลาดในการคืนตั๋ว' };
+      }
+
+      // Mark seat as booked again
+      const { error: seatUpdateError } = await supabase
+        .from('seats')
+        .update({ is_booked: true })
+        .eq('id', params.seatId);
+
+      if (seatUpdateError) {
+        console.error('Error booking seat:', seatUpdateError);
+        return { success: false, error: 'เกิดข้อผิดพลาดในการจองที่นั่ง' };
+      }
+
+      return { 
+        success: true, 
+        message: 'คืนตั๋วเรียบร้อยแล้ว ตั๋วสามารถใช้งานได้อีกครั้ง' 
+      };
+    } catch (error) {
+      console.error('Error restoring ticket:', error);
+      return { success: false, error: 'เกิดข้อผิดพลาดในการคืนตั๋ว' };
     }
   },
 
