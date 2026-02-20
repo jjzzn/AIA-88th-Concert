@@ -10,6 +10,7 @@ import AdminManagePage from './pages/admin-manage';
 import AdminSeatSwapPage from './pages/admin-seat-swap';
 import AdminSearchPage from './pages/admin-search';
 import AdminDashboardPage from './pages/admin-dashboard';
+import AdminLoginPage from './pages/admin-login';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -42,6 +43,11 @@ const Router: React.FC = () => {
   // Check if path is /check-in
   if (currentPath === '/check-in' || currentPath === '/check-in/') {
     return <AdminPage />;
+  }
+
+  // Check if path is /admin/login
+  if (currentPath === '/admin/login' || currentPath === '/admin/login/') {
+    return <AdminLoginPage />;
   }
 
   // Check if path is /admin/manage/dashboard

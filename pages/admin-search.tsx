@@ -1,16 +1,11 @@
-import React, { useState } from 'react';
-import { Search, Loader2, AlertCircle, User, Phone, Hash, X, CheckCircle2, XCircle, Clock, Mail } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Loader2, AlertCircle, User, Phone, Hash, X, CheckCircle2, XCircle, Clock, Mail, ArrowLeft } from 'lucide-react';
 import { ticketManagementService, TicketInfo } from '../lib/services/ticketManagementService';
 import { useDialog } from '../lib/hooks/useDialog';
 import Dialog from '../components/Dialog';
-import AdminLogin from '../components/admin/AdminLogin';
-import { AdminUser } from '../types/admin';
+import { adminManagerAuthService } from '../lib/services/adminManagerAuthService';
 
-interface SearchPortalProps {
-  adminUser: AdminUser;
-}
-
-const SearchPortal: React.FC<SearchPortalProps> = ({ adminUser }) => {
+const SearchPortal: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'booking_number' | 'phone' | 'name' | 'email' | 'qr_code'>('qr_code');
   const [loading, setLoading] = useState(false);
@@ -100,12 +95,21 @@ const SearchPortal: React.FC<SearchPortalProps> = ({ adminUser }) => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
+      <div className="bg-white border-b border-slate-100 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900">ค้นหาข้อมูลตั๋ว</h1>
-              <p className="text-sm text-slate-500">Ticket Search System</p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => window.location.href = '/admin/manage'}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                กลับ
+              </button>
+              <div>
+                <h1 className="text-2xl font-black text-slate-900">ค้นหาข้อมูลตั๋ว</h1>
+                <p className="text-sm text-slate-500">Ticket Search System</p>
+              </div>
             </div>
             {results.length > 0 && (
               <button
@@ -391,29 +395,33 @@ const SearchPortal: React.FC<SearchPortalProps> = ({ adminUser }) => {
 };
 
 const AdminSearchPage: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
-    const savedUser = localStorage.getItem('admin_user');
-    if (savedUser) {
-      try {
-        setCurrentUser(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem('admin_user');
-      }
-    }
+  useEffect(() => {
+    checkAuth();
   }, []);
 
-  const handleLoginSuccess = (user: AdminUser) => {
-    setCurrentUser(user);
-    localStorage.setItem('admin_user', JSON.stringify(user));
+  const checkAuth = async () => {
+    const admin = await adminManagerAuthService.getCurrentAdmin();
+    if (!admin) {
+      window.location.href = '/admin/login';
+      return;
+    }
+    setLoading(false);
   };
 
-  if (!currentUser) {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#E4002B] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-bold">กำลังตรวจสอบสิทธิ์...</p>
+        </div>
+      </div>
+    );
   }
 
-  return <SearchPortal adminUser={currentUser} />;
+  return <SearchPortal />;
 };
 
 export default AdminSearchPage;

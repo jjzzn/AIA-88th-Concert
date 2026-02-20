@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
-import { Search, ArrowRight, AlertCircle, CheckCircle2, Loader2, RefreshCw, Hash, Phone, User, Mail } from 'lucide-react';
-import { AdminUser } from '../../types/admin';
+import { Search, ArrowRight, AlertCircle, CheckCircle2, Loader2, RefreshCw, Hash, Phone, User, Mail, ArrowLeft } from 'lucide-react';
 import { BookingInfo, SeatInfo } from '../../types/seat-swap';
 import { seatSwapService } from '../../lib/services/seatSwapService';
+import { adminManagerAuthService } from '../../lib/services/adminManagerAuthService';
 import SeatSwapSeatMap from './SeatSwapSeatMap';
 import SwapConfirmationDialog from './SwapConfirmationDialog';
 import Dialog from '../Dialog';
 import { useDialog } from '../../lib/hooks/useDialog';
 
-interface Props {
-  adminUser: AdminUser;
-}
-
-const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
+const SeatSwapPortal: React.FC = () => {
   const [qrCode, setQrCode] = useState('');
   const [searchType, setSearchType] = useState<'qr_code' | 'phone' | 'name' | 'email'>('qr_code');
   const [loading, setLoading] = useState(false);
@@ -62,6 +58,12 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
 
     setSwapping(true);
     try {
+      // Get current admin ID
+      const admin = await adminManagerAuthService.getCurrentAdmin();
+      if (!admin) {
+        throw new Error('Not authenticated');
+      }
+
       const result = await seatSwapService.swapSeat(
         {
           booking_seat_id: bookingInfo.booking_seat_id,
@@ -69,7 +71,7 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
           reason,
           admin_notes: notes
         },
-        adminUser.id,
+        admin.id,
         window.location.hostname
       );
 
@@ -103,9 +105,18 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900">ระบบเปลี่ยนแปลงที่นั่ง</h1>
-              <p className="text-sm text-slate-500">Seat Swap Management System</p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => window.location.href = '/admin/manage'}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                กลับ
+              </button>
+              <div>
+                <h1 className="text-2xl font-black text-slate-900">ระบบเปลี่ยนแปลงที่นั่ง</h1>
+                <p className="text-sm text-slate-500">Seat Swap Management System</p>
+              </div>
             </div>
             {bookingInfo && (
               <button

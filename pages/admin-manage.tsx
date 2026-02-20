@@ -1,20 +1,70 @@
-import React from 'react';
-import { RefreshCw, Search, BarChart3 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { RefreshCw, Search, BarChart3, LogOut } from 'lucide-react';
+import { adminManagerAuthService, AdminManager } from '../lib/services/adminManagerAuthService';
 
 const AdminManagePage: React.FC = () => {
+  const [admin, setAdmin] = useState<AdminManager | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const currentAdmin = await adminManagerAuthService.getCurrentAdmin();
+    if (!currentAdmin) {
+      // Not logged in, redirect to login page
+      window.location.href = '/admin/login';
+      return;
+    }
+    setAdmin(currentAdmin);
+    setLoading(false);
+  };
+
+  const handleLogout = async () => {
+    await adminManagerAuthService.logout();
+    window.location.href = '/admin/login';
+  };
+
   const handleNavigate = (path: string) => {
     window.history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#E4002B] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-bold">กำลังตรวจสอบสิทธิ์...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900">ระบบจัดการตั๋ว</h1>
-            <p className="text-sm text-slate-500">Ticket Management System</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900">ระบบจัดการตั๋ว</h1>
+              <p className="text-sm text-slate-500">Ticket Management System</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm font-bold text-slate-900">{admin?.full_name}</p>
+                <p className="text-xs text-slate-500">{admin?.role === 'superadmin' ? 'Super Admin' : 'Manager'}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition"
+              >
+                <LogOut className="w-4 h-4" />
+                ออกจากระบบ
+              </button>
+            </div>
           </div>
         </div>
       </div>
