@@ -40,7 +40,7 @@ export const adminAuthService = {
       // For now, use simple authentication
       // In production, you should hash passwords and compare hashes
       const { data: adminUser, error } = await supabase
-        .from('admin_users')
+        .from('staff')
         .select('*')
         .eq('username', credentials.username)
         .eq('is_active', true)

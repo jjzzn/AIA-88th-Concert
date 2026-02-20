@@ -6,7 +6,7 @@ export const adminService = {
   async login(username: string, password: string): Promise<AdminUser | null> {
     try {
       const { data, error } = await supabase
-        .from('admin_users')
+        .from('staff')
         .select(`
           *,
           gates (
@@ -30,7 +30,7 @@ export const adminService = {
       
       // Update last login
       await supabase
-        .from('admin_users')
+        .from('staff')
         .update({ last_login: new Date().toISOString() })
         .eq('id', data.id);
 
