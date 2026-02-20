@@ -1,9 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { BookingState, Seat } from '../types';
-import { CheckCircle2, Download, Calendar, MapPin, Star, Settings, RefreshCw, Trash2 } from 'lucide-react';
+import { CheckCircle2, Download, Calendar, MapPin, Star, Settings, RefreshCw } from 'lucide-react';
 import QRCode from './QRCode';
 import html2canvas from 'html2canvas';
-import CancelConfirmationModal from './CancelConfirmationModal';
 import SwapConfirmationModal from './SwapConfirmationModal';
 import Dialog from './Dialog';
 import { useDialog } from '../hooks/useDialog';
@@ -169,7 +168,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
 
                     {/* QR Code Area - Clean & Centered */}
                     <div className="flex justify-center py-2">
-                      <div className={`p-6 bg-[#F8FAFC] rounded-[40px] border border-slate-100 shadow-[inset_0_2px_8px_rgba(0,0,0,0.03)] relative ${isCheckedIn || isCancelled ? 'opacity-60' : ''}`}>
+                      <div className={`p-6 bg-[#F8FAFC] rounded-[40px] border border-slate-100 shadow-[inset_0_2px_8px_rgba(0,0,0,0.03)] relative flex flex-col items-center ${isCheckedIn || isCancelled ? 'opacity-60' : ''}`}>
                         {isCheckedIn && (
                           <>
                             {/* Semi-transparent overlay */}
@@ -223,6 +222,9 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
                         <p className={`text-[11px] text-center text-slate-600 font-mono mt-3 tracking-wide font-bold ${isCancelled ? 'line-through' : ''}`}>
                           {qrToken}
                         </p>
+                        <p className="text-xs text-center text-[#E4002B] font-bold mt-2">
+                          บัตรนี้ห้ามนำไปจำหน่ายต่อเพื่อแสวงหากำไร
+                        </p>
                       </div>
                     </div>
 
@@ -244,7 +246,7 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
 
                     {/* Manage Booking Button - Only show in popup mode (My Ticket) */}
                     {isPopup && !isCheckedIn && !(attendee as any).isCancelled && (
-                      <div className="pt-4 border-t border-slate-100 space-y-2">
+                      <div className="pt-4 border-t border-slate-100">
                         <button
                           onClick={() => {
                             setManagingTicket({ 
@@ -266,28 +268,6 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
                         >
                           <Settings className="w-4 h-4" />
                           เปลี่ยนแปลงที่นั่ง {(attendee as any).swapCount >= 1 && '(ใช้แล้ว)'}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setManagingTicket({ 
-                              attendee: {
-                                ...attendee,
-                                bookingSeatId: (attendee as any).bookingSeatId,
-                                isCheckedIn: (attendee as any).isCheckedIn,
-                                cancelCount: (attendee as any).cancelCount,
-                                swapCount: (attendee as any).swapCount,
-                                isCancelled: (attendee as any).isCancelled,
-                              },
-                              seat: seat!,
-                              index
-                            });
-                            setManagementAction('cancel');
-                          }}
-                          disabled={(attendee as any).cancelCount >= 1}
-                          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-red-50 text-red-700 rounded-xl font-bold text-sm hover:bg-red-100 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200"
-                        >
-                          <Settings className="w-4 h-4" />
-                          ยกเลิกตั๋ว {(attendee as any).cancelCount >= 1 && '(ใช้แล้ว)'}
                         </button>
                       </div>
                     )}
@@ -348,29 +328,6 @@ const Confirmation: React.FC<Props> = ({ state, onReset, isPopup = false }) => {
             กลับสู่หน้าหลัก
           </button>
         </div>
-      )}
-
-      {/* Cancel Confirmation Modal */}
-      {managingTicket && managementAction === 'cancel' && (
-        <CancelConfirmationModal
-          isOpen={true}
-          onClose={() => {
-            setManagingTicket(null);
-            setManagementAction(null);
-          }}
-          attendee={managingTicket.attendee}
-          seat={managingTicket.seat}
-          onSuccess={() => {
-            // Force refresh by redirecting with timestamp to bypass cache
-            const urlParams = new URLSearchParams(window.location.search);
-            const phone = urlParams.get('phone');
-            if (phone) {
-              window.location.href = `/my-tickets?phone=${phone}&t=${Date.now()}`;
-            } else {
-              window.location.reload();
-            }
-          }}
-        />
       )}
 
       {/* Swap Confirmation Modal */}

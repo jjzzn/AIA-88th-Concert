@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Loader2, AlertTriangle, AlertCircle, CheckCircle2, X, Trash2, RefreshCw } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, AlertCircle, CheckCircle2, X, Trash2, RefreshCw, Hash, Phone, User, Mail } from 'lucide-react';
 import { ticketManagementService } from '../lib/services/ticketManagementService';
 import { useDialog } from '../lib/hooks/useDialog';
 import Dialog from '../components/Dialog';
@@ -27,6 +27,7 @@ interface CancelPortalProps {
 
 const CancelPortal: React.FC<CancelPortalProps> = ({ adminUser }) => {
   const [qrCode, setQrCode] = useState('');
+  const [searchType, setSearchType] = useState<'qr_code' | 'phone' | 'name' | 'email'>('qr_code');
   const [loading, setLoading] = useState(false);
   const [bookingInfo, setBookingInfo] = useState<AdminBookingInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +37,7 @@ const CancelPortal: React.FC<CancelPortalProps> = ({ adminUser }) => {
 
   const handleSearch = async () => {
     if (!qrCode.trim()) {
-      setError('กรุณากรอก QR Code');
+      setError('กรุณากรอกข้อมูลที่ต้องการค้นหา');
       return;
     }
 
@@ -45,35 +46,32 @@ const CancelPortal: React.FC<CancelPortalProps> = ({ adminUser }) => {
     setBookingInfo(null);
 
     try {
-      const { seatSwapService } = await import('../lib/services/seatSwapService');
-      const result = await seatSwapService.verifyCode({ code: qrCode.trim() });
-      
-      if (result.success && result.booking_info) {
-        // Get booking number from database
-        const { data: booking } = await (await import('../lib/supabase')).supabase
-          .from('bookings')
-          .select('booking_number')
-          .eq('id', result.booking_info.booking_id)
-          .single() as { data: { booking_number: string } | null };
+      // Search using ticketManagementService
+      const tickets = await ticketManagementService.searchTickets({
+        searchTerm: qrCode.trim(),
+        searchType: searchType
+      });
 
-        // Map booking_info to AdminBookingInfo format
+      if (tickets && tickets.length > 0) {
+        const ticket = tickets[0];
+        // Convert TicketInfo to AdminBookingInfo format
         const info: AdminBookingInfo = {
-          booking_id: result.booking_info.booking_id,
-          booking_number: booking?.booking_number || 'N/A',
-          first_name: result.booking_info.first_name,
-          last_name: result.booking_info.last_name,
-          email: result.booking_info.email || '',
-          phone: result.booking_info.phone || '',
-          qr_token: result.booking_info.qr_token,
-          seat_row: result.booking_info.current_seat.row,
-          seat_number: result.booking_info.current_seat.number,
-          zone_name: result.booking_info.current_seat.zone_name,
-          tier_name: result.booking_info.current_seat.tier_name,
-          is_checked_in: result.booking_info.checked_in || false,
+          booking_id: ticket.booking_id,
+          booking_number: ticket.booking_number,
+          first_name: ticket.first_name,
+          last_name: ticket.last_name,
+          email: ticket.email,
+          phone: ticket.phone,
+          qr_token: ticket.qr_token,
+          seat_row: ticket.seat_row,
+          seat_number: ticket.seat_number,
+          zone_name: ticket.zone_name,
+          tier_name: ticket.tier_name,
+          is_checked_in: ticket.checked_in || false,
         };
         setBookingInfo(info);
       } else {
-        setError(result.message || 'ไม่พบข้อมูลการจอง');
+        setError('ไม่พบข้อมูลการจอง');
       }
     } catch (err) {
       setError('เกิดข้อผิดพลาดในการค้นหา');
@@ -163,11 +161,59 @@ const CancelPortal: React.FC<CancelPortalProps> = ({ adminUser }) => {
                   ค้นหาการจอง
                 </h2>
                 <p className="text-slate-600">
-                  กรอก QR Code หรือ Booking Code เพื่อเริ่มต้น
+                  เลือกประเภทการค้นหาและกรอกข้อมูล
                 </p>
               </div>
 
               <div className="space-y-4">
+                {/* Search Type Selector */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setSearchType('qr_code')}
+                    className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      searchType === 'qr_code'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Hash className="w-4 h-4" />
+                    QR Code
+                  </button>
+                  <button
+                    onClick={() => setSearchType('phone')}
+                    className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      searchType === 'phone'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Phone className="w-4 h-4" />
+                    เบอร์โทร
+                  </button>
+                  <button
+                    onClick={() => setSearchType('name')}
+                    className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      searchType === 'name'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    ชื่อผู้นั่ง
+                  </button>
+                  <button
+                    onClick={() => setSearchType('email')}
+                    className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      searchType === 'email'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </button>
+                </div>
+
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -175,7 +221,15 @@ const CancelPortal: React.FC<CancelPortalProps> = ({ adminUser }) => {
                     value={qrCode}
                     onChange={(e) => setQrCode(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="กรอก QR Code (เช่น AIA-123456)"
+                    placeholder={
+                      searchType === 'qr_code'
+                        ? 'กรอก QR Code (เช่น AIA-123456)'
+                        : searchType === 'phone'
+                        ? 'กรอกเบอร์โทรศัพท์'
+                        : searchType === 'name'
+                        ? 'กรอกชื่อหรือนามสกุล'
+                        : 'กรอก Email'
+                    }
                     className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-[20px] text-lg font-medium text-slate-900 focus:border-red-500 focus:bg-white outline-none transition"
                     disabled={loading}
                   />
@@ -353,6 +407,7 @@ const CancelPortal: React.FC<CancelPortalProps> = ({ adminUser }) => {
             )}
           </div>
         )}
+
       </div>
 
       {/* Dialog */}

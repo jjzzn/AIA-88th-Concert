@@ -61,8 +61,8 @@ const App: React.FC = () => {
   const handleCodesSubmit = (codes: string[], tier: Tier) => {
     setState(prev => ({ ...prev, codes, selectedTier: tier }));
     setStep('SEAT_SELECTION');
-    // Start 5-minute countdown (300 seconds)
-    setTimeRemaining(300);
+    // Start 20-minute countdown (1200 seconds)
+    setTimeRemaining(1200);
   };
 
   const handleSeatsSubmit = async (seats: Seat[]) => {
@@ -95,8 +95,8 @@ const App: React.FC = () => {
     }
     
     setStep('DETAILS');
-    // Start 5-minute timer (300 seconds)
-    setTimeRemaining(300);
+    // Start 20-minute timer (1200 seconds)
+    setTimeRemaining(1200);
   };
 
   const handleDetailsSubmit = async (attendees: Attendee[], contact: ContactInfo) => {
@@ -110,6 +110,9 @@ const App: React.FC = () => {
       bookerFirstName: state.contact.firstName,
       bookerLastName: state.contact.lastName,
       isBookingForOthers: state.contact.isBookingForOthers,
+      grantorFirstName: state.contact.grantorFirstName,
+      grantorLastName: state.contact.grantorLastName,
+      grantorPhone: state.contact.grantorPhone,
       codes: state.codes,
       seats: attendees.map(a => ({
         seatId: a.seatId,

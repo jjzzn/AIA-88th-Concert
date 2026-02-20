@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ArrowRight, AlertCircle, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
+import { Search, ArrowRight, AlertCircle, CheckCircle2, Loader2, RefreshCw, Hash, Phone, User, Mail } from 'lucide-react';
 import { AdminUser } from '../../types/admin';
 import { BookingInfo, SeatInfo } from '../../types/seat-swap';
 import { seatSwapService } from '../../lib/services/seatSwapService';
@@ -14,6 +14,7 @@ interface Props {
 
 const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
   const [qrCode, setQrCode] = useState('');
+  const [searchType, setSearchType] = useState<'qr_code' | 'phone' | 'name' | 'email'>('qr_code');
   const [loading, setLoading] = useState(false);
   const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +25,7 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
 
   const handleVerify = async () => {
     if (!qrCode.trim()) {
-      setError('กรุณากรอก QR Code หรือ Booking Code');
+      setError('กรุณากรอกข้อมูลที่ต้องการค้นหา');
       return;
     }
 
@@ -34,12 +35,15 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
     setSelectedSeat(null);
 
     try {
-      const result = await seatSwapService.verifyCode({ code: qrCode.trim() });
+      const result = await seatSwapService.verifyCode({ 
+        code: qrCode.trim(),
+        searchType: searchType 
+      });
       
       if (result.success && result.booking_info) {
         setBookingInfo(result.booking_info);
       } else {
-        setError(result.message);
+        setError(result.message || 'ไม่พบข้อมูลการจอง');
       }
     } catch (err) {
       setError('เกิดข้อผิดพลาดในการตรวจสอบ');
@@ -129,11 +133,59 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
                   ค้นหาการจอง
                 </h2>
                 <p className="text-slate-600">
-                  กรอก QR Code หรือ Booking Code เพื่อเริ่มต้น
+                  เลือกประเภทการค้นหาและกรอกข้อมูล
                 </p>
               </div>
 
               <div className="space-y-4">
+                {/* Search Type Selector */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setSearchType('qr_code')}
+                    className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      searchType === 'qr_code'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Hash className="w-4 h-4" />
+                    QR Code
+                  </button>
+                  <button
+                    onClick={() => setSearchType('phone')}
+                    className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      searchType === 'phone'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Phone className="w-4 h-4" />
+                    เบอร์โทร
+                  </button>
+                  <button
+                    onClick={() => setSearchType('name')}
+                    className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      searchType === 'name'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    ชื่อผู้นั่ง
+                  </button>
+                  <button
+                    onClick={() => setSearchType('email')}
+                    className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      searchType === 'email'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </button>
+                </div>
+
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -141,7 +193,15 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
                     value={qrCode}
                     onChange={(e) => setQrCode(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleVerify()}
-                    placeholder="กรอก QR Code (เช่น AIA-123456)"
+                    placeholder={
+                      searchType === 'qr_code'
+                        ? 'กรอก QR Code (เช่น AIA-123456)'
+                        : searchType === 'phone'
+                        ? 'กรอกเบอร์โทรศัพท์'
+                        : searchType === 'name'
+                        ? 'กรอกชื่อหรือนามสกุล'
+                        : 'กรอก Email'
+                    }
                     className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-[20px] text-lg font-medium text-slate-900 focus:border-blue-500 focus:bg-white outline-none transition"
                     disabled={loading}
                   />
@@ -256,6 +316,7 @@ const SeatSwapPortal: React.FC<Props> = ({ adminUser }) => {
             />
           </div>
         )}
+
       </div>
 
       {/* Confirmation Dialog */}

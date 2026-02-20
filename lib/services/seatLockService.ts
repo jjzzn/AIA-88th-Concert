@@ -39,11 +39,11 @@ export const seatLockService = {
   },
 
   /**
-   * Lock seats for the current session (5 minutes by default)
+   * Lock seats for the current session (20 minutes by default)
    */
   async lockSeats(
     seatIds: string[],
-    durationMinutes: number = 5
+    durationMinutes: number = 20
   ): Promise<SeatLockResult> {
     try {
       const sessionId = this.getSessionId();
@@ -130,7 +130,7 @@ export const seatLockService = {
   /**
    * Extend lock duration for seats (useful when user needs more time)
    */
-  async extendLock(seatIds: string[], additionalMinutes: number = 5): Promise<boolean> {
+  async extendLock(seatIds: string[], additionalMinutes: number = 20): Promise<boolean> {
     try {
       const sessionId = this.getSessionId();
 

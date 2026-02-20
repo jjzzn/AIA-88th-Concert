@@ -26,7 +26,7 @@ interface SwapSeatResult {
 
 interface SearchTicketParams {
   searchTerm: string;
-  searchType: 'booking_number' | 'phone' | 'name';
+  searchType: 'booking_number' | 'phone' | 'name' | 'email' | 'qr_code';
 }
 
 interface TicketInfo {
@@ -60,12 +60,23 @@ interface RestoreTicketResult {
   error?: string;
 }
 
+interface RecentActivity {
+  id: string;
+  action: 'cancelled' | 'swapped' | 'restored';
+  booking_number: string;
+  first_name: string;
+  last_name: string;
+  seat_info: string;
+  timestamp: string;
+  admin_user?: string;
+}
+
 interface AvailableSeatsParams {
   tierId: string;
   zoneId: string;
 }
 
-export type { SearchTicketParams, TicketInfo, RestoreTicketParams, RestoreTicketResult };
+export type { SearchTicketParams, TicketInfo, RestoreTicketParams, RestoreTicketResult, RecentActivity };
 
 export const ticketManagementService = {
   /**
@@ -197,6 +208,7 @@ export const ticketManagementService = {
         .select(`
           id,
           booking_id,
+          seat_id,
           first_name,
           last_name,
           qr_token,
@@ -205,7 +217,7 @@ export const ticketManagementService = {
           swap_count,
           checked_in,
           cancelled_at,
-          seats (
+          seats!booking_seats_seat_id_fkey (
             row,
             number,
             zones (
@@ -215,7 +227,7 @@ export const ticketManagementService = {
               name
             )
           ),
-          bookings (
+          bookings!booking_seats_booking_id_fkey (
             booking_number,
             email,
             phone
@@ -253,9 +265,25 @@ export const ticketManagementService = {
       } else if (params.searchType === 'name') {
         // Search by attendee name
         query = query.or(`first_name.ilike.%${params.searchTerm}%,last_name.ilike.%${params.searchTerm}%`);
+      } else if (params.searchType === 'email') {
+        // Search by email - need to join with bookings table
+        const { data: bookings } = await supabase
+          .from('bookings')
+          .select('id')
+          .ilike('email', `%${params.searchTerm}%`);
+        
+        if (!bookings || bookings.length === 0) {
+          return [];
+        }
+        
+        const bookingIds = bookings.map(b => b.id);
+        query = query.in('booking_id', bookingIds);
+      } else if (params.searchType === 'qr_code') {
+        // Search by QR code (qr_token)
+        query = query.ilike('qr_token', `%${params.searchTerm}%`);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('created_at', { ascending: false }).limit(50);
 
       if (error) {
         console.error('Error searching tickets:', error);
@@ -357,6 +385,221 @@ export const ticketManagementService = {
     } catch (error) {
       console.error('Error restoring ticket:', error);
       return { success: false, error: 'เกิดข้อผิดพลาดในการคืนตั๋ว' };
+    }
+  },
+
+  /**
+   * Get recent cancelled tickets
+   */
+  async getRecentCancelledTickets(limit: number = 10): Promise<TicketInfo[]> {
+    try {
+      const { data, error } = await supabase
+        .from('booking_seats')
+        .select(`
+          id,
+          booking_id,
+          seat_id,
+          first_name,
+          last_name,
+          qr_token,
+          is_cancelled,
+          cancel_count,
+          swap_count,
+          checked_in,
+          cancelled_at,
+          seats!booking_seats_seat_id_fkey (
+            row,
+            number,
+            zones (
+              name
+            ),
+            tiers (
+              name
+            )
+          ),
+          bookings!booking_seats_booking_id_fkey (
+            booking_number,
+            email,
+            phone
+          )
+        `)
+        .eq('is_cancelled', true)
+        .not('cancelled_at', 'is', null)
+        .order('cancelled_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching recent cancelled tickets:', error);
+        return [];
+      }
+
+      const tickets: TicketInfo[] = (data || []).map((item: any) => ({
+        booking_seat_id: item.id,
+        booking_id: item.booking_id,
+        booking_number: item.bookings?.booking_number || 'N/A',
+        first_name: item.first_name,
+        last_name: item.last_name,
+        email: item.bookings?.email || '',
+        phone: item.bookings?.phone || '',
+        qr_token: item.qr_token,
+        seat_row: item.seats?.row || '',
+        seat_number: item.seats?.number || 0,
+        zone_name: item.seats?.zones?.name || '',
+        tier_name: item.seats?.tiers?.name || '',
+        is_cancelled: item.is_cancelled || false,
+        cancel_count: item.cancel_count || 0,
+        swap_count: item.swap_count || 0,
+        checked_in: item.checked_in || false,
+        cancelled_at: item.cancelled_at,
+      }));
+
+      return tickets;
+    } catch (error) {
+      console.error('Error fetching recent cancelled tickets:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Get recent seat swaps
+   */
+  async getRecentSeatSwaps(limit: number = 10): Promise<TicketInfo[]> {
+    try {
+      const { data, error } = await supabase
+        .from('booking_seats')
+        .select(`
+          id,
+          booking_id,
+          seat_id,
+          first_name,
+          last_name,
+          qr_token,
+          is_cancelled,
+          cancel_count,
+          swap_count,
+          checked_in,
+          cancelled_at,
+          updated_at,
+          seats!booking_seats_seat_id_fkey (
+            row,
+            number,
+            zones (
+              name
+            ),
+            tiers (
+              name
+            )
+          ),
+          bookings!booking_seats_booking_id_fkey (
+            booking_number,
+            email,
+            phone
+          )
+        `)
+        .gt('swap_count', 0)
+        .order('updated_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching recent seat swaps:', error);
+        return [];
+      }
+
+      const tickets: TicketInfo[] = (data || []).map((item: any) => ({
+        booking_seat_id: item.id,
+        booking_id: item.booking_id,
+        booking_number: item.bookings?.booking_number || 'N/A',
+        first_name: item.first_name,
+        last_name: item.last_name,
+        email: item.bookings?.email || '',
+        phone: item.bookings?.phone || '',
+        qr_token: item.qr_token,
+        seat_row: item.seats?.row || '',
+        seat_number: item.seats?.number || 0,
+        zone_name: item.seats?.zones?.name || '',
+        tier_name: item.seats?.tiers?.name || '',
+        is_cancelled: item.is_cancelled || false,
+        cancel_count: item.cancel_count || 0,
+        swap_count: item.swap_count || 0,
+        checked_in: item.checked_in || false,
+        cancelled_at: item.cancelled_at,
+      }));
+
+      return tickets;
+    } catch (error) {
+      console.error('Error fetching recent seat swaps:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Get all recent tickets (for search page)
+   */
+  async getRecentTickets(limit: number = 20): Promise<TicketInfo[]> {
+    try {
+      const { data, error } = await supabase
+        .from('booking_seats')
+        .select(`
+          id,
+          booking_id,
+          seat_id,
+          first_name,
+          last_name,
+          qr_token,
+          is_cancelled,
+          cancel_count,
+          swap_count,
+          checked_in,
+          cancelled_at,
+          created_at,
+          seats!booking_seats_seat_id_fkey (
+            row,
+            number,
+            zones (
+              name
+            ),
+            tiers (
+              name
+            )
+          ),
+          bookings!booking_seats_booking_id_fkey (
+            booking_number,
+            email,
+            phone
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching recent tickets:', error);
+        return [];
+      }
+
+      const tickets: TicketInfo[] = (data || []).map((item: any) => ({
+        booking_seat_id: item.id,
+        booking_id: item.booking_id,
+        booking_number: item.bookings?.booking_number || 'N/A',
+        first_name: item.first_name,
+        last_name: item.last_name,
+        email: item.bookings?.email || '',
+        phone: item.bookings?.phone || '',
+        qr_token: item.qr_token,
+        seat_row: item.seats?.row || '',
+        seat_number: item.seats?.number || 0,
+        zone_name: item.seats?.zones?.name || '',
+        tier_name: item.seats?.tiers?.name || '',
+        is_cancelled: item.is_cancelled || false,
+        cancel_count: item.cancel_count || 0,
+        swap_count: item.swap_count || 0,
+        checked_in: item.checked_in || false,
+        cancelled_at: item.cancelled_at,
+      }));
+
+      return tickets;
+    } catch (error) {
+      console.error('Error fetching recent tickets:', error);
+      return [];
     }
   },
 

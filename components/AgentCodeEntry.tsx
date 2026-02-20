@@ -92,7 +92,7 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
         {/* Agent First Name Input */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
-            ชื่อ
+            ชื่อ <span className="text-[#E4002B]">*</span>
           </label>
           <input
             type="text"
@@ -106,7 +106,7 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
         {/* Agent Last Name Input */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
-            นามสกุล
+            นามสกุล <span className="text-[#E4002B]">*</span>
           </label>
           <input
             type="text"
@@ -120,7 +120,7 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
         {/* Agent Code Input */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
-            รหัสตัวแทน
+            รหัสตัวแทน <span className="text-[#E4002B]">*</span>
           </label>
           <input
             type="text"
@@ -134,7 +134,7 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
         {/* Phone Input */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
-            เบอร์โทรศัพท์
+            เบอร์โทรศัพท์ <span className="text-[#E4002B]">*</span>
           </label>
           <input
             type="tel"
@@ -231,14 +231,14 @@ const AgentCodeEntry: React.FC<Props> = ({ onSubmit }) => {
                 <h4 className="font-bold text-slate-900 mb-3">3. การเปลี่ยนแปลงที่นั่ง</h4>
                 <p className="text-slate-600 mb-4">
                   - สามารถเปลี่ยนแปลงที่นั่งได้ 1 ครั้งเท่านั้น<br />
-                  - การเปลี่ยนแปลงต้องทำก่อนวันงาน 7 วัน<br />
+                  - การเปลี่ยนแปลงต้องทำก่อนวันงาน 10 วัน<br />
                   - ที่นั่งใหม่ต้องอยู่ในโซนทตามรหัสที่แลกมาเท้่านั้น
                 </p>
 
-                <h4 className="font-bold text-slate-900 mb-3">4. การยกเลิก</h4>
+                <h4 className="font-bold text-slate-900 mb-3">4. บัตรกิจกรรม</h4>
                 <p className="text-slate-600 mb-4">
-                  - สามารถยกเลิกตั๋วได้ 1 ครั้งเท่านั้น<br />
-                  - ต้องยกเลิกก่อนวันงาน 14 วัน<br />
+                  - บัตรคอนเสิร์ตจะถูกส่งไปยังอีเมลของท่านที่ใช้ลงทะเบียนมา <br />
+                  - บัตรคอนเสิร์ตห้ามนำไปจำหน่ายต่อเพื่อแสวงหากำไร <br />
                 </p>
 
                 <h4 className="font-bold text-slate-900 mb-3">5. ข้อจำกัดความรับผิด</h4>

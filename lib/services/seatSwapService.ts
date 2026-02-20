@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { ticketManagementService } from './ticketManagementService';
 import type {
   BookingInfo,
   SeatInfo,
@@ -17,11 +18,27 @@ export const seatSwapService = {
    */
   async verifyCode(request: VerifyCodeRequest): Promise<VerifyCodeResponse> {
     try {
-      const { code } = request;
+      const { code, searchType = 'qr_code' } = request;
 
-      console.log('🔍 Searching for QR token:', code);
+      console.log('🔍 Searching with type:', searchType, 'term:', code);
 
-      // Try to find by QR token first
+      // Use ticketManagementService to search
+      const tickets = await ticketManagementService.searchTickets({
+        searchTerm: code,
+        searchType: searchType
+      });
+
+      if (!tickets || tickets.length === 0) {
+        return {
+          success: false,
+          message: 'ไม่พบข้อมูลการจอง กรุณาตรวจสอบอีกครั้ง'
+        };
+      }
+
+      // Get the first result
+      const ticket = tickets[0];
+
+      // Now fetch full booking seat data with relationships
       const { data: bookingSeat, error } = await supabase
         .from('booking_seats')
         .select(`
@@ -56,7 +73,7 @@ export const seatSwapService = {
             )
           )
         `)
-        .eq('qr_token', code)
+        .eq('id', ticket.booking_seat_id)
         .single();
 
       console.log('📊 Query result:', { data: bookingSeat, error });

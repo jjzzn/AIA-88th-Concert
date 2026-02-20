@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, AlertTriangle, RefreshCw, Trash2, Armchair, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, AlertTriangle, RefreshCw, Armchair, Loader2, CheckCircle2 } from 'lucide-react';
 import { ticketManagementService } from '../lib/services/ticketManagementService';
 
 interface Attendee {
@@ -34,42 +34,16 @@ interface Props {
   onSuccess: () => void;
 }
 
-type ManagementAction = 'menu' | 'cancel' | 'swap' | 'swap-select';
+type ManagementAction = 'swap' | 'swap-select';
 
 const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, seat, onSuccess }) => {
-  const [action, setAction] = useState<ManagementAction>('menu');
+  const [action, setAction] = useState<ManagementAction>('swap');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [availableSeats, setAvailableSeats] = useState<any[]>([]);
   const [selectedNewSeat, setSelectedNewSeat] = useState<string | null>(null);
 
-  const handleCancelTicket = async () => {
-    if (!attendee.bookingSeatId) {
-      setError('ไม่พบข้อมูล booking seat ID');
-      return;
-    }
-
-    setIsProcessing(true);
-    setError(null);
-
-    const result = await ticketManagementService.cancelTicket({
-      bookingSeatId: attendee.bookingSeatId,
-      qrToken: attendee.qrToken,
-    });
-
-    setIsProcessing(false);
-
-    if (result.success) {
-      setSuccess(result.message || 'ยกเลิกตั๋วเรียบร้อยแล้ว');
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 2000);
-    } else {
-      setError(result.error || 'เกิดข้อผิดพลาด');
-    }
-  };
 
   const handleLoadAvailableSeats = async () => {
     setIsProcessing(true);
@@ -121,7 +95,7 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
   };
 
   const resetModal = () => {
-    setAction('menu');
+    setAction('swap');
     setError(null);
     setSuccess(null);
     setAvailableSeats([]);
@@ -135,7 +109,6 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
 
   if (!isOpen) return null;
 
-  const canCancel = !attendee.isCancelled && (attendee.cancelCount || 0) < 1;
   const canSwap = !attendee.isCancelled && (attendee.swapCount || 0) < 1;
 
   return (
@@ -150,8 +123,6 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-black text-slate-900">
-              {action === 'menu' && 'จัดการการจอง'}
-              {action === 'cancel' && 'ยกเลิกตั๋ว'}
               {action === 'swap' && 'เปลี่ยนแปลงที่นั่ง'}
               {action === 'swap-select' && 'เลือกที่นั่งใหม่'}
             </h3>
@@ -193,117 +164,6 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
             </div>
           )}
 
-          {/* Menu */}
-          {action === 'menu' && (
-            <div className="space-y-3">
-              {/* Cancel Ticket Button */}
-              <button
-                onClick={() => setAction('cancel')}
-                disabled={!canCancel || attendee.isCheckedIn}
-                className={`w-full p-5 rounded-2xl border-2 transition text-left ${
-                  canCancel && !attendee.isCheckedIn
-                    ? 'border-slate-200 hover:border-red-500 hover:bg-red-50 group'
-                    : 'border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    canCancel && !attendee.isCheckedIn ? 'bg-red-100 group-hover:bg-red-200' : 'bg-slate-200'
-                  }`}>
-                    <Trash2 className={`w-6 h-6 ${canCancel && !attendee.isCheckedIn ? 'text-red-600' : 'text-slate-400'}`} />
-                  </div>
-                  <div className="flex-1">
-                    <p className={`text-lg font-black ${canCancel && !attendee.isCheckedIn ? 'text-slate-900 group-hover:text-red-600' : 'text-slate-400'}`}>
-                      ยกเลิกตั๋ว
-                    </p>
-                    <p className="text-xs text-slate-500 font-medium">
-                      {attendee.isCheckedIn 
-                        ? 'ไม่สามารถยกเลิกตั๋วที่เช็คอินแล้ว'
-                        : !canCancel 
-                          ? `ใช้งานแล้ว ${attendee.cancelCount || 0}/1 ครั้ง`
-                          : 'คืนที่นั่งเข้าระบบ (ใช้ได้ 1 ครั้ง)'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Swap Seat Button */}
-              <button
-                onClick={() => setAction('swap')}
-                disabled={!canSwap || attendee.isCheckedIn}
-                className={`w-full p-5 rounded-2xl border-2 transition text-left ${
-                  canSwap && !attendee.isCheckedIn
-                    ? 'border-slate-200 hover:border-blue-500 hover:bg-blue-50 group'
-                    : 'border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    canSwap && !attendee.isCheckedIn ? 'bg-blue-100 group-hover:bg-blue-200' : 'bg-slate-200'
-                  }`}>
-                    <RefreshCw className={`w-6 h-6 ${canSwap && !attendee.isCheckedIn ? 'text-blue-600' : 'text-slate-400'}`} />
-                  </div>
-                  <div className="flex-1">
-                    <p className={`text-lg font-black ${canSwap && !attendee.isCheckedIn ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-400'}`}>
-                      เปลี่ยนแปลงที่นั่ง
-                    </p>
-                    <p className="text-xs text-slate-500 font-medium">
-                      {attendee.isCheckedIn
-                        ? 'ไม่สามารถเปลี่ยนแปลงที่นั่งที่เช็คอินแล้ว'
-                        : !canSwap
-                          ? `ใช้งานแล้ว ${attendee.swapCount || 0}/1 ครั้ง`
-                          : 'เปลี่ยนที่นั่งใน tier เดียวกัน (ใช้ได้ 1 ครั้ง)'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </button>
-            </div>
-          )}
-
-          {/* Cancel Confirmation */}
-          {action === 'cancel' && (
-            <div className="space-y-6">
-              <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-5">
-                <div className="flex items-start gap-3 mb-3">
-                  <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-black text-red-900 mb-2">คำเตือน</p>
-                    <p className="text-sm text-red-700 font-medium leading-relaxed">
-                      เมื่อยกเลิกตั๋วแล้ว <strong>QR Code และโค้ดที่แลกมา</strong> จะไม่สามารถใช้งานได้อีกต่อไป 
-                      และที่นั่งจะถูกคืนเข้าระบบ
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setAction('menu')}
-                  disabled={isProcessing}
-                  className="flex-1 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  onClick={handleCancelTicket}
-                  disabled={isProcessing}
-                  className="flex-1 py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition flex items-center justify-center gap-2"
-                >
-                  {isProcessing ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Trash2 className="w-5 h-5" />
-                      <span>ยืนยันยกเลิก</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Swap Confirmation */}
           {action === 'swap' && (
             <div className="space-y-6">
@@ -322,11 +182,11 @@ const TicketManagementModal: React.FC<Props> = ({ isOpen, onClose, attendee, sea
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setAction('menu')}
+                  onClick={handleClose}
                   disabled={isProcessing}
                   className="flex-1 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition"
                 >
-                  ยกเลิก
+                  ปิด
                 </button>
                 <button
                   onClick={handleLoadAvailableSeats}

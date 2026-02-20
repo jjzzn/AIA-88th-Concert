@@ -13,6 +13,9 @@ export interface BookingData {
   bookerFirstName?: string;
   bookerLastName?: string;
   isBookingForOthers?: boolean;
+  grantorFirstName?: string;
+  grantorLastName?: string;
+  grantorPhone?: string;
   codes: string[];
   seats: Array<{
     seatId: string;
@@ -62,6 +65,9 @@ export const bookingService = {
           booker_first_name: bookingData.bookerFirstName || null,
           booker_last_name: bookingData.bookerLastName || null,
           is_booking_for_others: bookingData.isBookingForOthers || false,
+          grantor_first_name: bookingData.grantorFirstName || null,
+          grantor_last_name: bookingData.grantorLastName || null,
+          grantor_phone: bookingData.grantorPhone || null,
           status: 'confirmed',
           user_type: bookingData.userType || null,
           agent_code: bookingData.agentInfo?.agentCode || null,

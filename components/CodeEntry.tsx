@@ -15,7 +15,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
   const { validateCodes, loading: validating } = useCodeValidation();
 
   const handleAddCode = () => {
-    if (codes.length < 10) {
+    if (codes.length < 4) {
       setCodes([...codes, '']);
     }
   };
@@ -29,14 +29,14 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
 
   const handleCodeChange = (index: number, value: string) => {
     const newCodes = [...codes];
-    newCodes[index] = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+    newCodes[index] = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
     setCodes(newCodes);
   };
 
   const validate = async () => {
     setError(null);
     const nonEmptyCodes = codes.filter(c => c !== '');
-    const validCodes = codes.filter(c => c.length === 8);
+    const validCodes = codes.filter(c => c.length === 10);
     
     if (nonEmptyCodes.length === 0) {
       setError('กรุณากรอกรหัสอย่างน้อย 1 รหัส');
@@ -44,7 +44,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
     }
 
     if (validCodes.length !== nonEmptyCodes.length) {
-      setError('รหัสต้องมี 8 หลัก (เช่น PT4K7M2N)');
+      setError('รหัสต้องมี 10 หลัก (เช่น PT12345678)');
       return;
     }
 
@@ -86,7 +86,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
       {/* Code Entry Section */}
       <div className="text-center space-y-4">
         <h2 className="text-xl font-black text-slate-900">ระบุรหัสบัตร</h2>
-        <p className="text-slate-500 text-sm">กรุณาระบุรหัส 8 หลัก สูงสุด 10 รหัส</p>
+        <p className="text-slate-500 text-sm">กรุณาระบุรหัส 10 หลัก สูงสุด 4 รหัส</p>
       </div>
 
       <div className="space-y-3">
@@ -96,7 +96,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
               type="text"
               value={code}
               onChange={(e) => handleCodeChange(index, e.target.value)}
-              placeholder="X X X X X X X X"
+              placeholder="X X X X X X X X X X"
               className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 py-5 text-center text-xl font-bold tracking-[0.5em] focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition uppercase text-slate-400 placeholder:text-slate-300"
             />
             {codes.length > 1 && (
@@ -110,7 +110,7 @@ const CodeEntry: React.FC<Props> = ({ onSubmit }) => {
           </div>
         ))}
 
-        {codes.length < 10 && (
+        {codes.length < 4 && (
           <button 
             onClick={handleAddCode}
             className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center gap-2 text-slate-400 hover:text-[#E4002B] hover:border-[#E4002B] transition font-bold text-sm"

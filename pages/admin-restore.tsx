@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Loader2, AlertCircle, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Search, Loader2, AlertCircle, RefreshCw, AlertTriangle, CheckCircle2, Hash, Phone, User, Mail } from 'lucide-react';
 import { ticketManagementService, TicketInfo } from '../lib/services/ticketManagementService';
 import { useDialog } from '../lib/hooks/useDialog';
 import Dialog from '../components/Dialog';
@@ -12,15 +12,25 @@ interface RestorePortalProps {
 
 const RestorePortal: React.FC<RestorePortalProps> = ({ adminUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState<'booking_number' | 'phone' | 'name' | 'email' | 'qr_code'>('qr_code');
   const [loading, setLoading] = useState(false);
   const [cancelledTickets, setCancelledTickets] = useState<TicketInfo[]>([]);
+  const [recentCancelled, setRecentCancelled] = useState<TicketInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [restoring, setRestoring] = useState<string | null>(null);
   const dialog = useDialog();
 
+  React.useEffect(() => {
+    const loadRecentCancelled = async () => {
+      const tickets = await ticketManagementService.getRecentCancelledTickets(10);
+      setRecentCancelled(tickets);
+    };
+    loadRecentCancelled();
+  }, []);
+
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
-      setError('กรุณากรอกเบอร์โทรหรือ Booking Number');
+      setError('กรุณากรอกข้อมูลที่ต้องการค้นหา');
       return;
     }
 
@@ -29,19 +39,10 @@ const RestorePortal: React.FC<RestorePortalProps> = ({ adminUser }) => {
     setCancelledTickets([]);
 
     try {
-      // Search by phone first
-      let tickets = await ticketManagementService.searchTickets({
+      const tickets = await ticketManagementService.searchTickets({
         searchTerm: searchTerm.trim(),
-        searchType: 'phone',
+        searchType,
       });
-
-      // If no results, try booking number
-      if (tickets.length === 0) {
-        tickets = await ticketManagementService.searchTickets({
-          searchTerm: searchTerm.trim(),
-          searchType: 'booking_number',
-        });
-      }
 
       // Filter only cancelled tickets
       const cancelled = tickets.filter(t => t.is_cancelled);
@@ -84,6 +85,9 @@ const RestorePortal: React.FC<RestorePortalProps> = ({ adminUser }) => {
         dialog.showSuccess(result.message || 'คืนตั๋วสำเร็จ!', 'สำเร็จ');
         // Refresh the list
         handleSearch();
+        // Refresh recent cancelled list
+        const tickets = await ticketManagementService.getRecentCancelledTickets(10);
+        setRecentCancelled(tickets);
       } else {
         dialog.showError(result.error || 'ไม่สามารถคืนตั๋วได้');
       }
@@ -136,11 +140,59 @@ const RestorePortal: React.FC<RestorePortalProps> = ({ adminUser }) => {
                 ค้นหาตั๋วที่ยกเลิก
               </h2>
               <p className="text-slate-600">
-                กรอกเบอร์โทรหรือ Booking Number เพื่อค้นหาตั๋วที่ถูกยกเลิก
+                เลือกประเภทการค้นหาและกรอกข้อมูล
               </p>
             </div>
 
             <div className="space-y-4">
+              {/* Search Type Selector */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setSearchType('qr_code')}
+                  className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                    searchType === 'qr_code'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <Hash className="w-4 h-4" />
+                  QR Code
+                </button>
+                <button
+                  onClick={() => setSearchType('phone')}
+                  className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                    searchType === 'phone'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <Phone className="w-4 h-4" />
+                  เบอร์โทร
+                </button>
+                <button
+                  onClick={() => setSearchType('name')}
+                  className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                    searchType === 'name'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  ชื่อผู้นั่ง
+                </button>
+                <button
+                  onClick={() => setSearchType('email')}
+                  className={`py-3 px-4 rounded-[16px] font-bold text-sm transition flex items-center justify-center gap-2 ${
+                    searchType === 'email'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <Mail className="w-4 h-4" />
+                  Email
+                </button>
+              </div>
+
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
@@ -148,7 +200,17 @@ const RestorePortal: React.FC<RestorePortalProps> = ({ adminUser }) => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="กรอกเบอร์โทรหรือ Booking Number"
+                  placeholder={
+                    searchType === 'qr_code'
+                      ? 'กรอก QR Code (เช่น AIA-123456)'
+                      : searchType === 'phone'
+                      ? 'กรอกเบอร์โทรศัพท์'
+                      : searchType === 'name'
+                      ? 'กรอกชื่อหรือนามสกุล'
+                      : searchType === 'email'
+                      ? 'กรอก Email'
+                      : 'กรอก Booking Number (เช่น AIA-123456)'
+                  }
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-[20px] text-lg font-medium text-slate-900 focus:border-green-500 focus:bg-white outline-none transition"
                   disabled={loading}
                 />
@@ -196,7 +258,79 @@ const RestorePortal: React.FC<RestorePortalProps> = ({ adminUser }) => {
           </div>
         </div>
 
-        {/* Cancelled Tickets List */}
+        {/* Recent Cancelled Tickets - Show when no search */}
+        {cancelledTickets.length === 0 && recentCancelled.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-black text-slate-900">
+                ตั๋วที่ยกเลิกล่าสุด ({recentCancelled.length} ตั๋ว)
+              </h3>
+            </div>
+
+            {recentCancelled.map((ticket) => (
+              <div
+                key={ticket.booking_seat_id}
+                className="bg-white rounded-[24px] p-6 shadow-sm border-2 border-red-200"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-black text-slate-900 mb-1">
+                      {ticket.first_name} {ticket.last_name}
+                    </h4>
+                    <p className="text-sm text-slate-500">
+                      Booking: <span className="font-mono font-bold text-blue-600">{ticket.booking_number}</span>
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">
+                    ยกเลิกแล้ว
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">ที่นั่ง</p>
+                    <p className="text-sm font-black text-slate-900">
+                      {ticket.tier_name} - {ticket.zone_name}
+                    </p>
+                    <p className="text-lg font-black text-red-600">
+                      แถว {ticket.seat_row} ที่ {ticket.seat_number.toString().padStart(2, '0')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">ยกเลิกเมื่อ</p>
+                    <p className="text-sm font-medium text-red-700">
+                      {ticket.cancelled_at 
+                        ? new Date(ticket.cancelled_at).toLocaleString('th-TH')
+                        : 'ไม่ทราบ'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                  <button
+                    onClick={() => handleRestore(ticket)}
+                    disabled={restoring === ticket.booking_seat_id}
+                    className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-[16px] font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                  >
+                    {restoring === ticket.booking_seat_id ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>กำลังคืนตั๋ว...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span>คืนตั๋ว</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Cancelled Tickets List - Show after search */}
         {cancelledTickets.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">

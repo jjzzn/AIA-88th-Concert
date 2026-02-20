@@ -44,6 +44,9 @@ export interface ContactInfo {
   firstName?: string;
   lastName?: string;
   isBookingForOthers?: boolean;
+  grantorFirstName?: string;
+  grantorLastName?: string;
+  grantorPhone?: string;
 }
 
 export interface AgentInfo {

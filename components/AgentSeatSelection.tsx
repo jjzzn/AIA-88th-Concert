@@ -247,7 +247,7 @@ const AgentSeatSelection: React.FC<Props> = ({ onSubmit, onBack, timeRemaining }
                 />
               </div>
               <p className="text-[9px] text-slate-400 mt-3 text-center font-medium">
-                Impact Arena - AIA 88th Anniversary Concert
+                Impact Arena - 88th Anniversary Concert
               </p>
             </div>
           </div>

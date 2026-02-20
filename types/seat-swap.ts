@@ -90,6 +90,7 @@ export interface SwapSeatResponse {
 
 export interface VerifyCodeRequest {
   code: string; // QR token or booking code
+  searchType?: 'qr_code' | 'phone' | 'name' | 'email';
 }
 
 export interface VerifyCodeResponse {

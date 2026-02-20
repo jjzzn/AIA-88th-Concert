@@ -12,6 +12,9 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [isBookingForOthers, setIsBookingForOthers] = useState(false);
+  const [grantorFirstName, setGrantorFirstName] = useState('');
+  const [grantorLastName, setGrantorLastName] = useState('');
+  const [grantorPhone, setGrantorPhone] = useState('');
   const [pdpaAccepted, setPdpaAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -35,6 +38,21 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
     setPhone(filtered);
   };
 
+  const handleGrantorFirstNameChange = (value: string) => {
+    const filtered = value.replace(/[^a-zA-Z\u0E00-\u0E7F\s]/g, '');
+    setGrantorFirstName(filtered);
+  };
+
+  const handleGrantorLastNameChange = (value: string) => {
+    const filtered = value.replace(/[^a-zA-Z\u0E00-\u0E7F\s]/g, '');
+    setGrantorLastName(filtered);
+  };
+
+  const handleGrantorPhoneChange = (value: string) => {
+    const filtered = value.replace(/\D/g, '').slice(0, 10);
+    setGrantorPhone(filtered);
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
@@ -54,6 +72,19 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
       newErrors.pdpa = 'กรุณายอมรับเงื่อนไขการใช้งานและนโยบายความเป็นส่วนตัว';
     }
 
+    // Validate grantor info if booking for others
+    if (isBookingForOthers) {
+      if (!grantorFirstName.trim()) {
+        newErrors.grantorFirstName = 'กรุณากรอกชื่อผู้ให้สิทธิ์';
+      }
+      if (!grantorLastName.trim()) {
+        newErrors.grantorLastName = 'กรุณากรอกนามสกุลผู้ให้สิทธิ์';
+      }
+      if (!grantorPhone || grantorPhone.length !== 10) {
+        newErrors.grantorPhone = 'กรุณากรอกเบอร์โทรศัพท์ผู้ให้สิทธิ์ 10 หลัก';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -67,6 +98,9 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
       phone,
       email: '', // Will be filled later in DetailsForm
       isBookingForOthers,
+      grantorFirstName: isBookingForOthers ? grantorFirstName : undefined,
+      grantorLastName: isBookingForOthers ? grantorLastName : undefined,
+      grantorPhone: isBookingForOthers ? grantorPhone : undefined,
     });
   };
 
@@ -90,7 +124,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto border border-slate-100">
           <User className="w-8 h-8 text-slate-400" />
         </div>
-        <h2 className="text-xl font-black text-slate-900">ข้อมูลผู้จอง</h2>
+        <h2 className="text-xl font-black text-slate-900">ข้อมูลเจ้าของสิทธิ์</h2>
         <p className="text-slate-500 text-sm">กรุณากรอกชื่อและเบอร์โทรศัพท์ของคุณ</p>
       </div>
 
@@ -98,7 +132,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
         {/* First Name */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
-            ชื่อ
+            ชื่อ <span className="text-[#E4002B]">*</span>
           </label>
           <input
             type="text"
@@ -115,7 +149,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
         {/* Last Name */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
-            นามสกุล
+            นามสกุล <span className="text-[#E4002B]">*</span>
           </label>
           <input
             type="text"
@@ -132,7 +166,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
         {/* Phone */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
-            เบอร์โทรศัพท์
+            เบอร์โทรศัพท์ <span className="text-[#E4002B]">*</span>
           </label>
           <input
             type="tel"
@@ -177,11 +211,70 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
                 className="w-4 h-4 text-[#E4002B] focus:ring-2 focus:ring-[#E4002B]/20 cursor-pointer accent-[#E4002B]"
               />
               <span className="text-sm text-slate-700 font-medium">
-                ใช้สิทธิ์แทนบุคคลอื่น
+                รับสิทธิ์จากบุคคลอื่น
               </span>
             </label>
           </div>
         </div>
+
+        {/* Grantor Information - Show only when receiving privilege from others */}
+        {isBookingForOthers && (
+          <div className="space-y-4 pt-2 bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
+            <h3 className="text-sm font-bold text-slate-900">ข้อมูลผู้รับสิทธิ์</h3>
+            
+            {/* Grantor First Name */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                ชื่อผู้รับสิทธิ์ <span className="text-[#E4002B]">*</span>
+              </label>
+              <input
+                type="text"
+                value={grantorFirstName}
+                onChange={(e) => handleGrantorFirstNameChange(e.target.value)}
+                placeholder="กรอกชื่อผู้รับสิทธิ์"
+                className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+              />
+              {errors.grantorFirstName && (
+                <p className="text-xs text-red-500 font-bold mt-2">{errors.grantorFirstName}</p>
+              )}
+            </div>
+
+            {/* Grantor Last Name */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                นามสกุลผู้ใรับสิทธิ์ <span className="text-[#E4002B]">*</span>
+              </label>
+              <input
+                type="text"
+                value={grantorLastName}
+                onChange={(e) => handleGrantorLastNameChange(e.target.value)}
+                placeholder="กรอกนามสกุลผู้รับสิทธิ์"
+                className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+              />
+              {errors.grantorLastName && (
+                <p className="text-xs text-red-500 font-bold mt-2">{errors.grantorLastName}</p>
+              )}
+            </div>
+
+            {/* Grantor Phone */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                เบอร์โทรศัพท์ผู้รับสิทธิ์ <span className="text-[#E4002B]">*</span>
+              </label>
+              <input
+                type="tel"
+                value={grantorPhone}
+                onChange={(e) => handleGrantorPhoneChange(e.target.value)}
+                placeholder="0812345678"
+                maxLength={10}
+                className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
+              />
+              {errors.grantorPhone && (
+                <p className="text-xs text-red-500 font-bold mt-2">{errors.grantorPhone}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* PDPA Checkbox */}
         <div className="pt-2">
@@ -255,7 +348,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
                   การใช้งานระบบจองตั๋วคอนเสิร์ต 88th Anniversary Concert ถือว่าท่านได้อ่านและยอมรับเงื่อนไขการใช้งานทั้งหมดแล้ว
                 </p>
 
-                <h4 className="font-bold text-slate-900 mb-3">2. การจองและการชำระเงิน</h4>
+                <h4 className="font-bold text-slate-900 mb-3">2. การจอง</h4>
                 <p className="text-slate-600 mb-4">
                   - ตั๋วที่จองจะต้องจองสำเร็จภายในเวลาที่กำหนด<br />
                   - การจองจะสมบูรณ์เมื่อได้รับการยืนยันจากระบบเท่านั้น<br />
@@ -268,10 +361,10 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
                   - ที่นั่งใหม่ต้องอยู่ในโซนตามรหัสที่แลกมาเท่านั้น
                 </p>
 
-                <h4 className="font-bold text-slate-900 mb-3">4. การยกเลิก</h4>
+                <h4 className="font-bold text-slate-900 mb-3">4. บัตรกิจกรรม</h4>
                 <p className="text-slate-600 mb-4">
-                  - สามารถยกเลิกตั๋วได้ 1 ครั้งเท่านั้น<br />
-                  - ต้องยกเลิกก่อนวันงาน 10 วัน<br />
+                  - บัตรคอนเสิร์ตจะถูกส่งไปยังอีเมลของท่านที่ใช้ลงทะเบียนมา <br />
+                  - บัตรคอนเสิร์ตห้ามนำไปจำหน่ายต่อเพื่อแสวงหากำไร <br />
                 </p>
 
                 <h4 className="font-bold text-slate-900 mb-3">5. ข้อจำกัดความรับผิด</h4>
