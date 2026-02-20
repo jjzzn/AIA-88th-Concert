@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, Trash2, Search, RotateCcw } from 'lucide-react';
+import { RefreshCw, Trash2, Search, RotateCcw, BarChart3 } from 'lucide-react';
 
 const AdminManagePage: React.FC = () => {
   const handleNavigate = (path: string) => {
@@ -26,7 +26,28 @@ const AdminManagePage: React.FC = () => {
           <p className="text-slate-600">กรุณาเลือกว่าต้องการจัดการตั๋วแบบใด</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {/* Dashboard Card */}
+          <button
+            onClick={() => handleNavigate('/admin/manage/dashboard')}
+            className="group bg-white rounded-[32px] p-8 border-2 border-slate-200 hover:border-orange-500 transition-all hover:shadow-xl hover:scale-105 active:scale-100"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-orange-100 group-hover:bg-orange-500 rounded-full flex items-center justify-center mb-6 transition-colors">
+                <BarChart3 className="w-10 h-10 text-orange-600 group-hover:text-white transition-colors" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-3">Dashboard</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                ดูภาพรวมการจอง<br />
+                และสถิติต่างๆ
+              </p>
+              <div className="mt-6 px-6 py-2 bg-orange-50 group-hover:bg-orange-500 rounded-full transition-colors">
+                <span className="text-sm font-bold text-orange-600 group-hover:text-white transition-colors">
+                  Dashboard
+                </span>
+              </div>
+            </div>
+          </button>
           {/* Ticket Search Card */}
           <button
             onClick={() => handleNavigate('/admin/manage/search')}

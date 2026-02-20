@@ -236,18 +236,35 @@ export const ticketManagementService = {
 
       // Apply search filter based on type
       if (params.searchType === 'booking_number') {
-        // Search by booking number - need to join with bookings table
+        // Search by booking number OR QR token (since users might confuse them)
+        // First try to find by QR token directly
+        const qrQuery = supabase
+          .from('booking_seats')
+          .select('id')
+          .ilike('qr_token', `%${params.searchTerm}%`);
+        
+        const { data: qrResults } = await qrQuery;
+        
+        // Also search by booking number
         const { data: bookings } = await supabase
           .from('bookings')
           .select('id')
           .ilike('booking_number', `%${params.searchTerm}%`);
         
-        if (!bookings || bookings.length === 0) {
+        // If found by QR token, use those IDs
+        if (qrResults && qrResults.length > 0) {
+          const bookingSeatIds = qrResults.map(r => r.id);
+          query = query.in('id', bookingSeatIds);
+        } 
+        // Otherwise, if found by booking number, use booking IDs
+        else if (bookings && bookings.length > 0) {
+          const bookingIds = bookings.map(b => b.id);
+          query = query.in('booking_id', bookingIds);
+        } 
+        // If neither found, return empty
+        else {
           return [];
         }
-        
-        const bookingIds = bookings.map(b => b.id);
-        query = query.in('booking_id', bookingIds);
       } else if (params.searchType === 'phone') {
         // Search by phone - need to join with bookings table
         const digitsOnly = params.searchTerm.replace(/\D/g, '');

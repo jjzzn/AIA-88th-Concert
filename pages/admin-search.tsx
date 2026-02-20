@@ -19,16 +19,23 @@ const SearchPortal: React.FC<SearchPortalProps> = ({ adminUser }) => {
   const [error, setError] = useState<string | null>(null);
   const dialog = useDialog();
 
+  // Auto-fill search term from URL query parameter
   React.useEffect(() => {
-    const loadRecentTickets = async () => {
-      const tickets = await ticketManagementService.getRecentTickets(20);
-      setRecentTickets(tickets);
-    };
-    loadRecentTickets();
+    const urlParams = new URLSearchParams(window.location.search);
+    const qrToken = urlParams.get('qr');
+    
+    if (qrToken) {
+      setSearchTerm(qrToken);
+      setSearchType('booking_number');
+      // Trigger search automatically after a short delay
+      setTimeout(() => {
+        handleSearchWithTerm(qrToken, 'booking_number');
+      }, 100);
+    }
   }, []);
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) {
+  const handleSearchWithTerm = async (term: string, type: 'booking_number' | 'phone' | 'name') => {
+    if (!term.trim()) {
       setError('กรุณากรอกข้อมูลที่ต้องการค้นหา');
       return;
     }
@@ -39,8 +46,8 @@ const SearchPortal: React.FC<SearchPortalProps> = ({ adminUser }) => {
 
     try {
       const tickets = await ticketManagementService.searchTickets({
-        searchTerm: searchTerm.trim(),
-        searchType,
+        searchTerm: term.trim(),
+        searchType: type,
       });
 
       if (tickets.length === 0) {
@@ -53,6 +60,10 @@ const SearchPortal: React.FC<SearchPortalProps> = ({ adminUser }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = async () => {
+    await handleSearchWithTerm(searchTerm, searchType);
   };
 
   const handleReset = () => {
