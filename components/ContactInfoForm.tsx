@@ -242,7 +242,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
             {/* Grantor Last Name */}
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">
-                นามสกุลผู้ใรับสิทธิ์ <span className="text-[#E4002B]">*</span>
+                นามสกุลผู้รับสิทธิ์ <span className="text-[#E4002B]">*</span>
               </label>
               <input
                 type="text"
@@ -251,7 +251,7 @@ const ContactInfoForm: React.FC<Props> = ({ onSubmit, onBack }) => {
                 placeholder="กรอกนามสกุลผู้รับสิทธิ์"
                 className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold focus:border-[#E4002B] focus:bg-white focus:ring-4 focus:ring-[#E4002B]/10 outline-none transition"
               />
-              {errors.grantorLastName && (
+              {errors.granadmin_userstorLastName && (
                 <p className="text-xs text-red-500 font-bold mt-2">{errors.grantorLastName}</p>
               )}
             </div>

@@ -164,7 +164,7 @@ const SeatSelection: React.FC<Props> = ({ tier, maxSeats, onSubmit, onBack, time
     } else {
       if (selectedSeatIds.length < maxSeats) {
         // Lock seat immediately when selecting
-        const lockResult = await seatLockService.lockSeats([seat.id], 5);
+        const lockResult = await seatLockService.lockSeats([seat.id], 20);
         
         if (!lockResult.success) {
           // Seat is already locked or booked
