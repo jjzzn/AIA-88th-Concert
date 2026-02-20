@@ -364,7 +364,7 @@ export const seatSwapService = {
       const { data, error } = await supabase.rpc('swap_seat', {
         p_booking_seat_id: booking_seat_id,
         p_new_seat_id: new_seat_id,
-        p_admin_user_id: adminUserId,
+        p_staff_id: adminUserId,
         p_reason: reason || null,
         p_admin_notes: admin_notes || null,
         p_admin_ip: adminIp || null

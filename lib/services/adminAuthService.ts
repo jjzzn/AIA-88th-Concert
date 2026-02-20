@@ -10,7 +10,7 @@ export interface AdminUser {
 }
 
 export interface AdminSession {
-  admin_user_id: string;
+  staff_id: string;
   username: string;
   full_name: string;
   email: string;
@@ -56,7 +56,7 @@ export const adminAuthService = {
 
       // Create session
       const { error: sessionError } = await supabase.rpc('create_admin_session', {
-        p_admin_user_id: adminUser.id,
+        p_staff_id: adminUser.id,
         p_session_token: sessionToken,
         p_ip_address: null,
         p_user_agent: navigator.userAgent,
@@ -150,7 +150,7 @@ export const adminAuthService = {
     }
 
     return {
-      id: session.admin_user_id,
+      id: session.staff_id,
       username: session.username,
       full_name: session.full_name,
       email: session.email,
@@ -183,7 +183,7 @@ export const adminAuthService = {
       }
 
       await supabase.rpc('log_admin_action', {
-        p_admin_user_id: admin.id,
+        p_staff_id: admin.id,
         p_action_type: params.action_type,
         p_booking_id: params.booking_id || null,
         p_booking_seat_id: params.booking_seat_id || null,

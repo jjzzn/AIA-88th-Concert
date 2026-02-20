@@ -134,7 +134,7 @@ export const adminService = {
         .from('check_ins')
         .insert({
           booking_seat_id: bookingSeatId,
-          admin_user_id: adminUserId,
+          staff_id: adminUserId,
           gate_id: gateId,
           notes: notes || null
         });

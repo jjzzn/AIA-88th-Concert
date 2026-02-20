@@ -22,7 +22,7 @@ export interface AdminUser {
 export interface CheckIn {
   id: string;
   booking_seat_id: string;
-  admin_user_id: string;
+  staff_id: string;
   gate_id: string;
   checked_in_at: string;
   notes?: string;
